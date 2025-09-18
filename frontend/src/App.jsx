@@ -10,6 +10,7 @@ import Profile from './pages/Profile.jsx'
 import Settings from './pages/Settings.jsx'
 import MyTasks from './pages/MyTasks.jsx'
 import Workspace from './pages/Workspace.jsx'
+import PhaseOne from './pages/PhaseOne.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import logo from './my_images/logo.png'
@@ -133,6 +134,15 @@ const AppContent = () => {
               >
                 Manifesto
               </NavLink>
+              <NavLink 
+                to="/phase-one" 
+                style={dropdownLinkStyle}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
+              >
+                Phase 1
+              </NavLink>
             </div>
           </div>
           <NavLink to="/my-tasks" style={linkStyle}>Execute</NavLink>
@@ -213,6 +223,7 @@ const AppContent = () => {
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
+          <Route path="/phase-one" element={<PhaseOne />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-tasks" element={<MyTasks />} />

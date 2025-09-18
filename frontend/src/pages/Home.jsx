@@ -326,6 +326,7 @@ export default function Home() {
           <p className="image-banner__subtitle">Learning has never been faster and easier</p>
         </div>
       </section>
+      
     </div>
   )
 }

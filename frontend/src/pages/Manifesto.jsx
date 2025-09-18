@@ -47,6 +47,7 @@ export default function Manifesto() {
           <p className="product-description">It leads to less exploitation, because economic opportunity is distributed across billions, not concentrated in a few companies.</p>
           
           <p className="product-description">And it creates a safer future, where society continuously builds for itself, fixing each other's problems and ensuring resilience.</p>
+
         </section>
       </div>
     </div>

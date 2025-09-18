@@ -150,7 +150,11 @@ def init_database():
         # Row factory may not always be set; support both tuple and Row
         count = (existing['c'] if isinstance(existing, sqlite3.Row) else existing[0]) if existing else 0
         if count == 0:
-            templates = EnvTemplateDB.default_software_templates()
+            templates = (
+                EnvTemplateDB.default_software_templates()
+                + EnvTemplateDB.default_hardware_templates()
+                + EnvTemplateDB.default_logistics_templates()
+            )
             for tpl in templates:
                 cursor.execute(
                     '''INSERT INTO env_templates
@@ -164,7 +168,7 @@ def init_database():
                     )
                 )
             conn.commit()
-            print('Seeded default software environment templates')
+            print('Seeded default environment templates: software, hardware, logistics')
     except Exception as e:
         print(f"Template seeding skipped due to error: {e}")
     finally:
@@ -797,6 +801,114 @@ class EnvTemplateDB:
                 'ui_config': {'panes': ['editor','ai','tests','logs'], 'default_open': 'ai'},
                 'version': '1.0.0',
                 'status': 'active'
+            }
+        ]
+
+    @staticmethod
+    def default_hardware_templates():
+        """Three tiers for hardware-style tasks (simulation-first scaffolds)."""
+        base_readme = (
+            '# Hardware Task\n'
+            'Work with simple digital logic problems using Python for simulation.\n'
+            'Evaluate with: pytest -q\n'
+        )
+        return [
+            {
+                'name': 'Hardware • Digital Logic • Low Abstraction',
+                'category': 'hardware',
+                'tier': 'low',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme + '\nImplement primitive gates and a combinational module from spec.',
+                    'logic.py': 'def nand(a,b):\n    raise NotImplementedError\n\n# implement xor using only nand\ndef xor(a,b):\n    raise NotImplementedError\n',
+                    'test_logic.py': 'from logic import nand, xor\n\nimport pytest\n\n@pytest.mark.parametrize("a,b", [(0,0),(0,1),(1,0),(1,1)])\ndef test_nand_truth(a,b):\n    out = nand(a,b)\n    assert out in (0,1)\n    assert out == (0 if (a==1 and b==1) else 1)\n\n@pytest.mark.parametrize("a,b,exp", [(0,0,0),(0,1,1),(1,0,1),(1,1,0)])\ndef test_xor(a,b,exp):\n    assert xor(a,b) == exp\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs','ai'], 'default_open': 'tests'}
+            },
+            {
+                'name': 'Hardware • Microcontroller • Medium Abstraction',
+                'category': 'hardware',
+                'tier': 'medium',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme + '\nSimulate a simple PWM controller in Python.',
+                    'pwm.py': 'class PWM:\n    def __init__(self, freq_hz: int, duty: float):\n        self.freq_hz = freq_hz\n        self.duty = duty  # 0..1\n\n    def tick(self, t_s: float) -> int:\n        """Return 1 when high else 0 at time t (seconds)."""\n        # TODO: implement using period = 1/freq_hz and duty fraction\n        return 0\n',
+                    'test_pwm.py': 'from pwm import PWM\n\ndef test_pwm_half_duty():\n    p = PWM(100, 0.5)\n    period = 1/100\n    assert p.tick(0.0) in (0,1)\n    highs = sum(p.tick(i*period/10) for i in range(10))\n    assert 3 <= highs <= 7\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs','ai'], 'default_open': 'editor'}
+            },
+            {
+                'name': 'Hardware • High Abstraction (Guided)',
+                'category': 'hardware',
+                'tier': 'high',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme,
+                    'prompts.md': 'Goal: implement xor via nand; add PWM.tick simulation. Steps: (1) write truth tables, (2) sketch, (3) test-driven.',
+                    'logic.py': 'def nand(a,b):\n    return 0 if (a==1 and b==1) else 1\n\ndef xor(a,b):\n    # Replace with nand-only version if you wish\n    return (a + b) % 2\n',
+                    'test_logic.py': 'from logic import nand, xor\n\nimport pytest\n\n@pytest.mark.parametrize("a,b,exp", [(0,0,0),(0,1,1),(1,0,1),(1,1,0)])\ndef test_xor(a,b,exp):\n    assert xor(a,b) == exp\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','ai','tests','logs'], 'default_open': 'ai'}
+            }
+        ]
+
+    @staticmethod
+    def default_logistics_templates():
+        """Three tiers for logistics/optimization tasks (LP-style)."""
+        base_readme = (
+            '# Logistics Task\n'
+            'Solve a small optimization/scheduling problem.\n'
+            'Evaluate with: pytest -q\n'
+        )
+        return [
+            {
+                'name': 'Logistics • Routing • Low Abstraction',
+                'category': 'logistics',
+                'tier': 'low',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme + '\nImplement a greedy nearest-neighbor route length function.',
+                    'routing.py': 'def route_length(points):\n    """Return total path length visiting points in given order and back to start."""\n    raise NotImplementedError\n\n',
+                    'test_routing.py': 'from routing import route_length\n\nimport math\n\ndef test_triangle():\n    pts = [(0,0),(1,0),(0,1)]\n    total = route_length(pts)\n    assert total == pytest.approx(1 + math.sqrt(2) + 1 + math.sqrt(2))\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs','ai'], 'default_open': 'tests'}
+            },
+            {
+                'name': 'Logistics • Simple LP • Medium Abstraction',
+                'category': 'logistics',
+                'tier': 'medium',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme + '\nImplement a tiny linear assignment solver stub (no external deps).',
+                    'assign.py': 'def assign(costs):\n    """Given a square cost matrix (list of lists), return a permutation list.\n    Implement a naive search for n<=5."""\n    # TODO\n    return list(range(len(costs)))\n',
+                    'test_assign.py': 'from assign import assign\n\nimport itertools\n\ndef cost_of(costs, perm):\n    return sum(costs[i][perm[i]] for i in range(len(perm)))\n\ndef test_2x2():\n    costs = [[1,5],[5,1]]\n    perm = assign(costs)\n    assert cost_of(costs, perm) == 2\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs','ai'], 'default_open': 'editor'}
+            },
+            {
+                'name': 'Logistics • High Abstraction (Guided)',
+                'category': 'logistics',
+                'tier': 'high',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': base_readme,
+                    'prompts.md': 'Goal: implement route_length(points) and a naive assignment. Steps with checks: (1) write helper distance, (2) sum edges incl. return, (3) brute-force n<=5.',
+                    'routing.py': 'def route_length(points):\n    import math\n    if not points: return 0.0\n    total = 0.0\n    for i in range(len(points)):\n        a = points[i]\n        b = points[(i+1)%len(points)]\n        total += math.dist(a,b)\n    return total\n',
+                    'test_routing.py': 'from routing import route_length\n\ndef test_square():\n    pts = [(0,0),(1,0),(1,1),(0,1)]\n    assert round(route_length(pts),3) == 4.0\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','ai','tests','logs'], 'default_open': 'ai'}
             }
         ]
 
