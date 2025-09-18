@@ -1,13 +1,22 @@
 import React, { useState } from 'react'
 import { NavLink, Routes, Route } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'
 import Home from './pages/Home.jsx'
 import Manifesto from './pages/Manifesto.jsx'
 import Tasks from './pages/Tasks.jsx'
 import Marketplace from './pages/Marketplace.jsx'
 import Education from './pages/Education.jsx'
+import Profile from './pages/Profile.jsx'
+import Settings from './pages/Settings.jsx'
+import MyTasks from './pages/MyTasks.jsx'
+import AuthModal from './components/AuthModal.jsx'
+import UserProfile from './components/UserProfile.jsx'
 
-export default function App() {
+const AppContent = () => {
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+  const [authModalMode, setAuthModalMode] = useState('login')
+  const { user, loading } = useAuth()
   
   // Handle click outside to close dropdown
   React.useEffect(() => {
@@ -20,6 +29,25 @@ export default function App() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
+
+  const openAuthModal = (mode = 'login') => {
+    setAuthModalMode(mode)
+    setAuthModalOpen(true)
+  }
+
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        minHeight: '100vh',
+        fontFamily: 'JetBrains Mono, monospace'
+      }}>
+        Loading Nova...
+      </div>
+    )
+  }
 
   const linkStyle = ({ isActive }) => ({
     padding: '0.5rem 1rem',
@@ -104,6 +132,70 @@ export default function App() {
           <NavLink to="/tasks" style={linkStyle}>Tasks</NavLink>
           <NavLink to="/marketplace" style={linkStyle}>Marketplace</NavLink>
           <NavLink to="/education" style={linkStyle}>Education</NavLink>
+          
+          {/* Authentication Section */}
+          <div style={{ marginLeft: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            {user ? (
+              <UserProfile />
+            ) : (
+              <>
+                <button 
+                  onClick={() => openAuthModal('login')}
+                  style={{
+                    background: 'none',
+                    border: '2px solid #000',
+                    padding: '0.5rem 1rem',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.8rem',
+                    fontWeight: '500',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    color: '#000',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '4px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#000'
+                    e.target.style.color = 'white'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'none'
+                    e.target.style.color = '#000'
+                  }}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => openAuthModal('register')}
+                  style={{
+                    background: '#000',
+                    border: '2px solid #000',
+                    padding: '0.5rem 1rem',
+                    fontFamily: 'JetBrains Mono, monospace',
+                    fontSize: '0.8rem',
+                    fontWeight: '500',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    color: 'white',
+                    transition: 'all 0.2s ease',
+                    borderRadius: '4px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = 'white'
+                    e.target.style.color = '#000'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#000'
+                    e.target.style.color = 'white'
+                  }}
+                >
+                  Join Nova
+                </button>
+              </>
+            )}
+          </div>
         </nav>
       </header>
 
@@ -114,9 +206,27 @@ export default function App() {
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/my-tasks" element={<MyTasks />} />
         </Routes>
       </main>
+
+      {/* Authentication Modal */}
+      <AuthModal 
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        defaultMode={authModalMode}
+      />
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   )
 }
 

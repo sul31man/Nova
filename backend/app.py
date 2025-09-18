@@ -1,9 +1,12 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB
+from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB, UserDB
 from ai_service import ai_service
 import traceback
 import os
+import jwt
+import datetime
+from functools import wraps
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -12,12 +15,161 @@ load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
+# JWT Secret Key (in production, this should be a secure random key)
+JWT_SECRET = os.getenv('JWT_SECRET', 'nova-secret-key-change-in-production')
+
 # Initialize database on startup
 init_database()
+
+# Authentication decorator
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = request.headers.get('Authorization')
+        
+        if not token:
+            return jsonify({'message': 'Token is missing'}), 401
+        
+        try:
+            if token.startswith('Bearer '):
+                token = token[7:]
+            data = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+            current_user_id = data['user_id']
+            current_user = UserDB.get_user(current_user_id)
+            if not current_user:
+                return jsonify({'message': 'User not found'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Token is invalid'}), 401
+        
+        return f(current_user, *args, **kwargs)
+    return decorated
 
 @app.get("/api/hello")
 def hello():
     return jsonify(message="Hello from Nova API!")
+
+# Authentication endpoints
+@app.post("/api/auth/register")
+def register():
+    """Register a new user"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify(error="Request data is required"), 400
+        
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        full_name = data.get('full_name')
+        
+        if not all([username, email, password]):
+            return jsonify(error="Username, email, and password are required"), 400
+        
+        # Validate password length
+        if len(password) < 6:
+            return jsonify(error="Password must be at least 6 characters long"), 400
+        
+        user_id, error = UserDB.create_user(username, email, password, full_name)
+        
+        if error:
+            return jsonify(error=error), 400
+        
+        # Generate JWT token
+        token = jwt.encode({
+            'user_id': user_id,
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        }, JWT_SECRET, algorithm='HS256')
+        
+        # Get user data
+        user = UserDB.get_user(user_id)
+        
+        return jsonify({
+            'message': 'User registered successfully',
+            'token': token,
+            'user': user
+        })
+        
+    except Exception as e:
+        print(f"Registration error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Registration failed"), 500
+
+@app.post("/api/auth/login")
+def login():
+    """Login user"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify(error="Request data is required"), 400
+        
+        username_or_email = data.get('username_or_email')
+        password = data.get('password')
+        
+        if not all([username_or_email, password]):
+            return jsonify(error="Username/email and password are required"), 400
+        
+        user = UserDB.authenticate_user(username_or_email, password)
+        
+        if not user:
+            return jsonify(error="Invalid credentials"), 401
+        
+        # Generate JWT token
+        token = jwt.encode({
+            'user_id': user['id'],
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=30)
+        }, JWT_SECRET, algorithm='HS256')
+        
+        return jsonify({
+            'message': 'Login successful',
+            'token': token,
+            'user': user
+        })
+        
+    except Exception as e:
+        print(f"Login error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Login failed"), 500
+
+@app.get("/api/auth/me")
+@token_required
+def get_current_user(current_user):
+    """Get current user information"""
+    return jsonify(user=current_user)
+
+@app.put("/api/auth/profile")
+@token_required
+def update_profile(current_user):
+    """Update user profile"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify(error="Request data is required"), 400
+        
+        UserDB.update_user_profile(
+            current_user['id'],
+            full_name=data.get('full_name'),
+            bio=data.get('bio'),
+            skills=data.get('skills'),
+            avatar_url=data.get('avatar_url')
+        )
+        
+        # Get updated user data
+        updated_user = UserDB.get_user(current_user['id'])
+        
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'user': updated_user
+        })
+        
+    except Exception as e:
+        print(f"Profile update error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Profile update failed"), 500
 
 @app.post("/api/projects/create")
 def create_project():
