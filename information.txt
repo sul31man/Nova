@@ -6,6 +6,6 @@ A tasks page. (The tasks page should be such that you have an engineering proble
 
 furthermore, the tasks page should be split between a place to choose tasks and to upload these tasks in the manner i just described
 
-An education page ( leave this blank for now, ill fill it later)
+An education page ( this will figureout what skills people want to build and create a taylored plan for learning within the time frame they want. It has to be as efficient as possible, when we go onto the education tab, therell be a button which will take them to a new education section which asks questions and creates a map of what they need to do. SPOON FEED PEOPLE!!!)
 
 Note: OpenAI API key is now stored securely in backend/.env file (see SETUP.md for configuration instructions)

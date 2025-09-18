@@ -22,8 +22,10 @@ def init_database():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             description TEXT NOT NULL,
+            user_id INTEGER,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'active'
+            status TEXT DEFAULT 'active',
+            FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
     
@@ -116,12 +118,12 @@ def get_db_connection():
 # Database helper functions
 class ProjectDB:
     @staticmethod
-    def create_project(title, description):
+    def create_project(title, description, user_id=None):
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute(
-            'INSERT INTO projects (title, description) VALUES (?, ?)',
-            (title, description)
+            'INSERT INTO projects (title, description, user_id) VALUES (?, ?, ?)',
+            (title, description, user_id)
         )
         project_id = cursor.lastrowid
         conn.commit()
@@ -233,6 +235,159 @@ class TaskDB:
             task_dict['skills'] = json.loads(task_dict['skills'])
             return task_dict
         return None
+
+    @staticmethod
+    def get_filtered_tasks(difficulty=None, skills=None, min_credits=None, max_credits=None):
+        conn = get_db_connection()
+        
+        query = 'SELECT * FROM tasks WHERE status = "available"'
+        params = []
+        
+        if difficulty:
+            query += ' AND difficulty = ?'
+            params.append(difficulty)
+        
+        if min_credits is not None:
+            query += ' AND reward_credits >= ?'
+            params.append(min_credits)
+        
+        if max_credits is not None:
+            query += ' AND reward_credits <= ?'
+            params.append(max_credits)
+        
+        query += ' ORDER BY created_at DESC'
+        
+        tasks = conn.execute(query, params).fetchall()
+        conn.close()
+        
+        # Parse skills JSON and filter by skills if specified
+        result = []
+        for task in tasks:
+            task_dict = dict(task)
+            task_dict['skills'] = json.loads(task_dict['skills'])
+            
+            # Filter by skills if specified
+            if skills:
+                task_skills_lower = [skill.lower() for skill in task_dict['skills']]
+                filter_skills_lower = [skill.lower().strip() for skill in skills]
+                if any(skill in task_skills_lower for skill in filter_skills_lower):
+                    result.append(task_dict)
+            else:
+                result.append(task_dict)
+        
+        return result
+
+    @staticmethod
+    def create_application(task_id, user_id, applicant_name, applicant_email, application_message):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            '''INSERT INTO task_applications 
+               (task_id, user_id, applicant_name, applicant_email, application_message) 
+               VALUES (?, ?, ?, ?, ?)''',
+            (task_id, user_id, applicant_name, applicant_email, application_message)
+        )
+        application_id = cursor.lastrowid
+        
+        # Update applicants count
+        cursor.execute(
+            'UPDATE tasks SET applicants_count = applicants_count + 1 WHERE id = ?',
+            (task_id,)
+        )
+        
+        conn.commit()
+        conn.close()
+        return application_id
+
+    @staticmethod
+    def get_user_application(task_id, user_id):
+        conn = get_db_connection()
+        application = conn.execute(
+            'SELECT * FROM task_applications WHERE task_id = ? AND user_id = ?',
+            (task_id, user_id)
+        ).fetchone()
+        conn.close()
+        return dict(application) if application else None
+
+    @staticmethod
+    def get_user_assigned_tasks(user_id):
+        conn = get_db_connection()
+        tasks = conn.execute(
+            '''SELECT t.*, ta.status as application_status, ta.created_at as applied_at
+               FROM tasks t 
+               JOIN task_applications ta ON t.id = ta.task_id 
+               WHERE ta.user_id = ? AND ta.status IN ('accepted', 'pending')
+               ORDER BY ta.created_at DESC''',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for task in tasks:
+            task_dict = dict(task)
+            task_dict['skills'] = json.loads(task_dict['skills'])
+            result.append(task_dict)
+        return result
+
+    @staticmethod
+    def get_user_completed_tasks(user_id):
+        conn = get_db_connection()
+        tasks = conn.execute(
+            '''SELECT t.*, ta.status as application_status, ta.created_at as applied_at
+               FROM tasks t 
+               JOIN task_applications ta ON t.id = ta.task_id 
+               WHERE ta.user_id = ? AND t.status = 'completed'
+               ORDER BY t.created_at DESC''',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for task in tasks:
+            task_dict = dict(task)
+            task_dict['skills'] = json.loads(task_dict['skills'])
+            result.append(task_dict)
+        return result
+
+    @staticmethod
+    def get_user_created_tasks(user_id):
+        conn = get_db_connection()
+        tasks = conn.execute(
+            '''SELECT t.* FROM tasks t 
+               JOIN projects p ON t.project_id = p.id 
+               WHERE p.user_id = ?
+               ORDER BY t.created_at DESC''',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for task in tasks:
+            task_dict = dict(task)
+            task_dict['skills'] = json.loads(task_dict['skills'])
+            result.append(task_dict)
+        return result
+
+    @staticmethod
+    def user_can_update_task(task_id, user_id):
+        conn = get_db_connection()
+        # Check if user has applied for this task and it's assigned to them
+        application = conn.execute(
+            'SELECT * FROM task_applications WHERE task_id = ? AND user_id = ? AND status = "accepted"',
+            (task_id, user_id)
+        ).fetchone()
+        conn.close()
+        return application is not None
+
+    @staticmethod
+    def update_task_status(task_id, new_status):
+        conn = get_db_connection()
+        conn.execute(
+            'UPDATE tasks SET status = ? WHERE id = ?',
+            (new_status, task_id)
+        )
+        conn.commit()
+        conn.close()
 
 class UserDB:
     @staticmethod
@@ -373,6 +528,17 @@ class UserDB:
             cursor.execute(query, values)
             conn.commit()
         
+        conn.close()
+
+    @staticmethod
+    def add_credits(user_id, credits):
+        """Add credits to user account"""
+        conn = get_db_connection()
+        conn.execute(
+            'UPDATE users SET credits = credits + ? WHERE id = ?',
+            (credits, user_id)
+        )
+        conn.commit()
         conn.close()
 
 if __name__ == "__main__":

@@ -172,7 +172,8 @@ def update_profile(current_user):
         return jsonify(error="Profile update failed"), 500
 
 @app.post("/api/projects/create")
-def create_project():
+@token_required
+def create_project(current_user):
     """Create a new engineering project and generate first AI question"""
     try:
         data = request.get_json()
@@ -184,7 +185,7 @@ def create_project():
         title = data.get('title', engineering_problem[:100] + "..." if len(engineering_problem) > 100 else engineering_problem)
         
         # Create project in database
-        project_id = ProjectDB.create_project(title, engineering_problem)
+        project_id = ProjectDB.create_project(title, engineering_problem, current_user['id'])
         
         # Generate first AI question
         first_question = ai_service.generate_initial_question(engineering_problem)
@@ -335,9 +336,21 @@ def get_project(project_id):
 
 @app.get("/api/tasks")
 def get_all_tasks():
-    """Get all available tasks for the marketplace"""
+    """Get all available tasks for the marketplace with optional filtering"""
     try:
-        tasks = TaskDB.get_all_tasks()
+        # Get filter parameters
+        difficulty = request.args.get('difficulty')
+        skills = request.args.get('skills')  # comma-separated
+        min_credits = request.args.get('min_credits', type=int)
+        max_credits = request.args.get('max_credits', type=int)
+        
+        tasks = TaskDB.get_filtered_tasks(
+            difficulty=difficulty,
+            skills=skills.split(',') if skills else None,
+            min_credits=min_credits,
+            max_credits=max_credits
+        )
+        
         return jsonify(tasks=tasks)
         
     except Exception as e:
@@ -346,25 +359,101 @@ def get_all_tasks():
         return jsonify(error="Failed to get tasks"), 500
 
 @app.post("/api/tasks/<int:task_id>/apply")
-def apply_to_task(task_id):
+@token_required
+def apply_to_task(current_user, task_id):
     """Apply to work on a specific task"""
     try:
         data = request.get_json()
+        application_message = data.get('message', '')
         
-        # For now, just return success
-        # In a real app, you'd store application details
+        # Check if task exists
+        task = TaskDB.get_task(task_id)
+        if not task:
+            return jsonify(error="Task not found"), 404
+        
+        # Check if user already applied
+        existing_application = TaskDB.get_user_application(task_id, current_user['id'])
+        if existing_application:
+            return jsonify(error="You have already applied for this task"), 400
+        
+        # Create application
+        application_id = TaskDB.create_application(
+            task_id, 
+            current_user['id'], 
+            current_user['username'], 
+            current_user['email'], 
+            application_message
+        )
         
         return jsonify({
             'success': True,
-            'message': f'Successfully applied to task {task_id}'
+            'message': 'Application submitted successfully',
+            'application_id': application_id
         })
         
     except Exception as e:
-        print(f"Error applying to task: {e}")
-        traceback.print_exc()
-        return jsonify(error="Failed to apply to task"), 500
+        print(f"Task application error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to submit application"), 500
+
+@app.get("/api/my-tasks")
+@token_required
+def get_my_tasks(current_user):
+    """Get tasks assigned to or created by the current user"""
+    try:
+        user_id = current_user['id']
+        
+        # Get assigned tasks (tasks user has applied for and been assigned)
+        assigned_tasks = TaskDB.get_user_assigned_tasks(user_id)
+        
+        # Get completed tasks
+        completed_tasks = TaskDB.get_user_completed_tasks(user_id)
+        
+        # Get created tasks (tasks from projects created by user)
+        created_tasks = TaskDB.get_user_created_tasks(user_id)
+        
+        return jsonify({
+            'assigned': assigned_tasks,
+            'completed': completed_tasks,
+            'created': created_tasks
+        })
+        
+    except Exception as e:
+        print(f"Error fetching user tasks: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to fetch user tasks"), 500
+
+@app.put("/api/tasks/<int:task_id>/status")
+@token_required
+def update_task_status(current_user, task_id):
+    """Update task status (start, complete, etc.)"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if new_status not in ['in_progress', 'completed', 'cancelled']:
+            return jsonify(error="Invalid status"), 400
+        
+        # Verify user has permission to update this task
+        if not TaskDB.user_can_update_task(task_id, current_user['id']):
+            return jsonify(error="Permission denied"), 403
+        
+        TaskDB.update_task_status(task_id, new_status)
+        
+        # If completing task, award credits
+        if new_status == 'completed':
+            task = TaskDB.get_task(task_id)
+            if task:
+                UserDB.add_credits(current_user['id'], task['reward_credits'])
+        
+        return jsonify(message="Task status updated successfully")
+        
+    except Exception as e:
+        print(f"Error updating task status: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to update task status"), 500
 
 if __name__ == "__main__":
-    # Default dev server on http://127.0.0.1:5000
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)
+    app.run(host="127.0.0.1", port=5001, debug=True)
 

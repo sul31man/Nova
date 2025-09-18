@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import './MyTasks.css'
 
 export default function MyTasks() {
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const [activeTab, setActiveTab] = useState('assigned')
   const [tasks, setTasks] = useState({
     assigned: [],
@@ -11,6 +11,7 @@ export default function MyTasks() {
     created: []
   })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -19,69 +20,59 @@ export default function MyTasks() {
   }, [user])
 
   const fetchMyTasks = async () => {
+    if (!user || !token) return
+    
     setLoading(true)
+    setError('')
+    
     try {
-      // TODO: Implement API calls to fetch user's tasks
-      // For now, using mock data
-      setTimeout(() => {
-        setTasks({
-          assigned: [
-            {
-              id: 1,
-              title: "Implement user authentication",
-              description: "Add JWT-based authentication system to the Nova platform",
-              difficulty: "intermediate",
-              estimated_hours: "8-12 hours",
-              reward_credits: 500,
-              status: "in_progress",
-              deadline: "2024-02-15",
-              project_title: "Nova Authentication System"
-            },
-            {
-              id: 2,
-              title: "Design landing page mockups",
-              description: "Create responsive design mockups for the new landing page",
-              difficulty: "beginner",
-              estimated_hours: "4-6 hours",
-              reward_credits: 250,
-              status: "pending",
-              deadline: "2024-02-20",
-              project_title: "Website Redesign"
-            }
-          ],
-          completed: [
-            {
-              id: 3,
-              title: "Set up database schema",
-              description: "Design and implement the initial database structure",
-              difficulty: "intermediate",
-              estimated_hours: "6-8 hours",
-              reward_credits: 400,
-              status: "completed",
-              completed_date: "2024-01-25",
-              project_title: "Nova Backend Development"
-            }
-          ],
-          created: [
-            {
-              id: 4,
-              title: "Build mobile app prototype",
-              description: "Create a React Native prototype for the Nova mobile app",
-              difficulty: "advanced",
-              estimated_hours: "20-30 hours",
-              reward_credits: 1000,
-              status: "available",
-              applicants_count: 3,
-              created_date: "2024-01-30",
-              project_title: "Nova Mobile App"
-            }
-          ]
-        })
-        setLoading(false)
-      }, 1000)
+      const response = await fetch('/api/my-tasks', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch tasks')
+      }
+
+      const data = await response.json()
+      setTasks({
+        assigned: data.assigned || [],
+        completed: data.completed || [],
+        created: data.created || []
+      })
     } catch (error) {
       console.error('Error fetching tasks:', error)
+      setError('Failed to load your tasks')
+    } finally {
       setLoading(false)
+    }
+  }
+
+  const updateTaskStatus = async (taskId, newStatus) => {
+    if (!token) return
+
+    try {
+      const response = await fetch(`/api/tasks/${taskId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update task status')
+      }
+
+      // Refresh tasks after status update
+      fetchMyTasks()
+      alert('Task status updated successfully!')
+    } catch (error) {
+      console.error('Error updating task status:', error)
+      alert('Failed to update task status')
     }
   }
 
@@ -174,6 +165,10 @@ export default function MyTasks() {
         </div>
 
         <div className="tasks-content">
+          {error && (
+            <div className="error-message">{error}</div>
+          )}
+          
           {loading ? (
             <div className="loading-message">Loading your tasks...</div>
           ) : (
@@ -233,11 +228,21 @@ export default function MyTasks() {
                     <div className="task-actions">
                       {activeTab === 'assigned' && (
                         <>
-                          {task.status === 'pending' && (
-                            <button className="action-btn primary">Start Task</button>
+                          {task.application_status === 'pending' && (
+                            <button 
+                              className="action-btn primary"
+                              onClick={() => updateTaskStatus(task.id, 'in_progress')}
+                            >
+                              Start Task
+                            </button>
                           )}
                           {task.status === 'in_progress' && (
-                            <button className="action-btn success">Mark Complete</button>
+                            <button 
+                              className="action-btn success"
+                              onClick={() => updateTaskStatus(task.id, 'completed')}
+                            >
+                              Mark Complete
+                            </button>
                           )}
                           <button className="action-btn secondary">View Details</button>
                         </>
