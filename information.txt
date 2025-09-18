@@ -1,0 +1,10 @@
+the website needs the following :
+
+A Home page explaining the product ( manifesto)
+
+A tasks page. (The tasks page should be such that you have an engineering problem and an AI continuously asks you more question about the engineering problem and then spits this out into a certain number of tasks ( you choose ) which people can choose from and start working on)
+
+furthermore, the tasks page should be split between a place to choose tasks and to upload these tasks in the manner i just described
+
+An education page ( leave this blank for now, ill fill it later)
+
