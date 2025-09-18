@@ -9,6 +9,7 @@ import Education from './pages/Education.jsx'
 import Profile from './pages/Profile.jsx'
 import Settings from './pages/Settings.jsx'
 import MyTasks from './pages/MyTasks.jsx'
+import Workspace from './pages/Workspace.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 
@@ -210,6 +211,7 @@ const AppContent = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-tasks" element={<MyTasks />} />
+          <Route path="/workspace/:taskId" element={<Workspace />} />
         </Routes>
       </main>
 

@@ -244,12 +244,12 @@ export default function MyTasks() {
                               Mark Complete
                             </button>
                           )}
-                          <button className="action-btn secondary">View Details</button>
+                          <a className="action-btn secondary" href={`/workspace/${task.id}`}>Open Workspace</a>
                         </>
                       )}
 
                       {activeTab === 'completed' && (
-                        <button className="action-btn secondary">View Details</button>
+                        <a className="action-btn secondary" href={`/workspace/${task.id}`}>View Workspace</a>
                       )}
 
                       {activeTab === 'created' && (

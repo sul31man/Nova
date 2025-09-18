@@ -8,6 +8,7 @@ import jwt
 import datetime
 from functools import wraps
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv()
@@ -644,3 +645,79 @@ def update_application_status(current_user, application_id):
 if __name__ == "__main__":
     # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)
     app.run(host="127.0.0.1", port=5001, debug=True)
+
+"""
+Lightweight Workspace API (MVP)
+Creates a transient workspace config for a task with an AI-inspired
+environment selection (rule-based for now). This is a stub to enable the
+frontend flow where assignees click a task and load a workspace instantly.
+"""
+
+def select_env_template(task):
+    """Rule-based environment selector based on task skills/description"""
+    text = f"{task.get('title','')} {task.get('description','')}".lower()
+    skills = [s.lower() for s in task.get('skills', [])]
+
+    def has(*keywords):
+        return any(k in text or k in skills for k in keywords)
+
+    if has('python', 'pytest', 'pandas', 'numpy', 'ml', 'ai'):
+        return {
+            'id': 'python-basic',
+            'runtime': 'python3.11',
+            'deps': ['pytest'],
+            'scaffold': {
+                'README.md': '# Python Task\nRun tests with: pytest -q',
+                'main.py': 'def solve(x):\n    return x\n\nif __name__ == "__main__":\n    print(solve(42))\n',
+                'test_main.py': 'from main import solve\n\ndef test_identity():\n    assert solve(42) == 42\n'
+            },
+            'evaluate': {'command': 'pytest -q'}
+        }
+
+    # Default to Node
+    return {
+        'id': 'node-basic',
+        'runtime': 'node18',
+        'deps': ['jest'],
+        'scaffold': {
+            'README.md': '# Node Task\nRun tests with: npm test',
+            'package.json': '{\n  "name": "task",\n  "type": "module",\n  "scripts": {"test": "jest --silent"}\n}',
+            'index.js': 'export function solve(x){ return x }\n',
+            'index.test.js': 'import { solve } from "./index.js";\n test("identity", ()=>{ expect(solve(42)).toBe(42); });\n'
+        },
+        'evaluate': {'command': 'npm test'}
+    }
+
+@app.post("/api/tasks/<int:task_id>/workspace")
+@token_required
+def create_workspace(current_user, task_id):
+    """Return a transient workspace config for the task (no persistence)."""
+    try:
+        task = TaskDB.get_task(task_id)
+        if not task:
+            return jsonify(error="Task not found"), 404
+
+        # Only allow assignee (accepted application) or project owner
+        is_assignee = TaskDB.user_can_update_task(task_id, current_user['id'])
+        project = ProjectDB.get_project(task['project_id']) if task else None
+        is_owner = project and project.get('user_id') == current_user['id']
+        if not (is_assignee or is_owner):
+            return jsonify(error="Unauthorized to open workspace"), 403
+
+        template = select_env_template(task)
+        workspace_id = f"ws-{task_id}-{int(time.time())}"
+        return jsonify({
+            'workspace': {
+                'id': workspace_id,
+                'task_id': task_id,
+                'template': template['id'],
+                'runtime': template['runtime'],
+                'deps': template['deps'],
+                'evaluate': template['evaluate']
+            },
+            'files': template['scaffold']
+        })
+    except Exception as e:
+        print(f"Create workspace error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to create workspace"), 500

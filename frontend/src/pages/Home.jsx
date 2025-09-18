@@ -256,8 +256,8 @@ export default function Home() {
           </p>
 
           {/* Mathematical “objective + constraints” strip */}
-          <div className="equation" role="img" aria-label="maximize sum productivity subject to constraints">
-            <span className="op">maximize</span>
+          <div className="equation" role="img" aria-label="maximise sum productivity subject to constraints">
+            <span className="op">maximise</span>
             <span className="sym"> Σ</span>
             <span> productivity_i</span>
             <span className="constraint">
@@ -288,6 +288,32 @@ export default function Home() {
             <a href="/tasks" className="cta-primary">Join the Cluster</a>
             <a href="/manifesto" className="cta-secondary">See how it works</a>
           </div>
+        </div>
+      </section>
+
+      {/* Image + Text Section (no animation) */}
+      <section className="image-banner" role="region" aria-label="Showcase">
+        <div className="image-banner__overlay" aria-hidden="true" />
+        <div className="image-banner__content">
+          <h2 className="image-banner__title">Be Part of Building the Future</h2>
+          <p className="image-banner__subtitle">
+            Build Together
+          </p>
+          <p className="image-banner__subtitle">
+            Build Quickly
+          </p>
+          <p className="image-banner__subtitle">
+            Make a Mark
+          </p>
+          <p className="image-banner__subtitle">
+            From Wherever
+          </p>
+          <p className="image-banner__subtitle">
+            From Whoever
+          </p>
+          <p className="image-banner__subtitle">
+            Empowering and Optimising Humanity
+          </p>
         </div>
       </section>
     </div>
