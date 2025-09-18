@@ -171,6 +171,19 @@ def update_profile(current_user):
         print(traceback.format_exc())
         return jsonify(error="Profile update failed"), 500
 
+# Education: generate learning plan
+@app.post("/api/education/plan")
+def generate_learning_plan():
+    """Generate a spoon-fed learning plan based on user inputs"""
+    try:
+        data = request.get_json() or {}
+        plan = ai_service.generate_learning_plan(data)
+        return jsonify(plan)
+    except Exception as e:
+        print(f"Education plan error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to generate learning plan"), 500
+
 @app.post("/api/projects/create")
 @token_required
 def create_project(current_user):

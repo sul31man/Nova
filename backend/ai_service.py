@@ -259,5 +259,118 @@ class AITaskGenerator:
             }
         ]
 
+    def generate_learning_plan(self, inputs: Dict) -> Dict:
+        """Generate a structured, step-by-step learning plan.
+
+        Expected inputs keys:
+          - interests: str
+          - target_skills: List[str] or comma-separated str
+          - timeframe_weeks: int
+          - hours_per_week: int
+          - starting_level: str (beginner/intermediate/advanced)
+          - modality: str (video/text/project/mixed)
+        """
+        # Normalize inputs
+        interests = inputs.get('interests', '')
+        target_skills = inputs.get('target_skills', [])
+        if isinstance(target_skills, str):
+            target_skills = [s.strip() for s in target_skills.split(',') if s.strip()]
+        timeframe_weeks = max(1, int(inputs.get('timeframe_weeks', 4)))
+        hours_per_week = max(1, int(inputs.get('hours_per_week', 5)))
+        starting_level = inputs.get('starting_level', 'beginner')
+        modality = inputs.get('modality', 'mixed')
+
+        prompt = f"""
+        You are an elite learning architect. Build a SPOON-FED, step-by-step plan to upskill a learner.
+
+        Constraints and preferences:
+        - Interests: {interests}
+        - Target skills: {', '.join(target_skills) if target_skills else 'N/A'}
+        - Timeframe (weeks): {timeframe_weeks}
+        - Hours per week: {hours_per_week}
+        - Starting level: {starting_level}
+        - Preferred modality: {modality}
+
+        Requirements:
+        - Split into weeks (Week 1..N) with daily or session-sized tasks.
+        - Each task must be short, explicit and actionable (no vague study).
+        - Include concrete resources per task (URL titles with short descriptions; generic if unsure).
+        - Include quick checks/mini-assessments at the end of each week.
+        - Include 1 small project per week that compounds toward a capstone in the final week.
+        - Keep language concise, directive, and motivating.
+        - Assume typical web-accessible free resources when possible.
+
+        Return ONLY valid JSON with this schema:
+        {{
+          "summary": {{
+            "objective": str,
+            "duration_weeks": int,
+            "weekly_hours": int,
+            "recommended_stack": [str]
+          }},
+          "weeks": [
+            {{
+              "week": int,
+              "theme": str,
+              "sessions": [
+                {{
+                  "title": str,
+                  "duration_hours": number,
+                  "tasks": [str],
+                  "resources": [{{"title": str, "url": str}}]
+                }}
+              ],
+              "mini_assessment": [str],
+              "project": {{"title": str, "description": str, "acceptance_criteria": [str]}}
+            }}
+          ],
+          "capstone": {{"title": str, "description": str, "acceptance_criteria": [str]}}
+        }}
+        """
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a world-class curriculum designer who creates explicit, step-by-step plans."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.6,
+                max_tokens=2500
+            )
+            raw = response.choices[0].message.content.strip()
+            plan = json.loads(raw)
+            return plan
+        except Exception as e:
+            print(f"Error generating learning plan: {e}")
+            # Minimal fallback
+            return {
+                "summary": {
+                    "objective": "Focused upskilling plan",
+                    "duration_weeks": timeframe_weeks,
+                    "weekly_hours": hours_per_week,
+                    "recommended_stack": target_skills[:3]
+                },
+                "weeks": [
+                    {
+                        "week": 1,
+                        "theme": "Foundations",
+                        "sessions": [
+                            {
+                                "title": "Core Concepts",
+                                "duration_hours": min(2, hours_per_week),
+                                "tasks": ["Read a primer", "Complete a quick tutorial"],
+                                "resources": [
+                                    {"title": "Free Intro Resource", "url": "https://developer.mozilla.org/"}
+                                ]
+                            }
+                        ],
+                        "mini_assessment": ["Explain core ideas in your own words"],
+                        "project": {"title": "Mini Project 1", "description": "Apply the basics.", "acceptance_criteria": ["Runs", "Meets basic spec"]}
+                    }
+                ],
+                "capstone": {"title": "Capstone", "description": "Integrate everything.", "acceptance_criteria": ["Meets brief", "Deployed/demoable"]}
+            }
+
 # Initialize the AI service
 ai_service = AITaskGenerator()
