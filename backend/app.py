@@ -9,6 +9,9 @@ import datetime
 from functools import wraps
 from dotenv import load_dotenv
 import time
+import tempfile
+import subprocess
+import shutil
 
 # Load environment variables
 load_dotenv()
@@ -794,6 +797,71 @@ def workspace_assist(current_user, task_id):
     except Exception as e:
         print(f"Workspace assist error: {e}")
         return jsonify(error="Assistant failed"), 500
+
+@app.post("/api/workspaces/<int:task_id>/evaluate")
+@token_required
+def workspace_evaluate(current_user, task_id):
+    """Run evaluation for the given files in a temporary sandbox.
+    Body: { files: {path: content}, runtime: 'python3.11' }
+    NOTE: This MVP uses a local subprocess and assumes pytest is available.
+    It writes files to a temp directory, runs pytest with a timeout, and returns output.
+    """
+    try:
+        data = request.get_json() or {}
+        files = data.get('files') or {}
+        runtime = data.get('runtime') or 'python3.11'
+
+        # Authorization: same as open workspace (assignee or owner)
+        task = TaskDB.get_task(task_id)
+        if not task:
+            return jsonify(error="Task not found"), 404
+        is_assignee = TaskDB.user_can_update_task(task_id, current_user['id'])
+        project = ProjectDB.get_project(task['project_id']) if task else None
+        is_owner = project and project.get('user_id') == current_user['id']
+        if not (is_assignee or is_owner):
+            return jsonify(error="Unauthorized to evaluate"), 403
+
+        # Only support Python for now
+        if not str(runtime).lower().startswith('python'):
+            return jsonify(error="Only Python runtime supported in MVP"), 400
+
+        # Create temp workspace
+        tempdir = tempfile.mkdtemp(prefix=f"nova_ws_{task_id}_")
+        try:
+            # Write files
+            for relpath, content in files.items():
+                safe_rel = relpath.strip().lstrip('/').replace('..', '')
+                abspath = os.path.join(tempdir, safe_rel)
+                os.makedirs(os.path.dirname(abspath), exist_ok=True)
+                with open(abspath, 'w', encoding='utf-8') as f:
+                    f.write(content)
+
+            # Run pytest
+            cmd = ["python", "-m", "pytest", "-q"]
+            proc = subprocess.Popen(
+                cmd,
+                cwd=tempdir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            try:
+                stdout, stderr = proc.communicate(timeout=25)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
+                return jsonify(success=False, exit_code=124, stdout=stdout, stderr=stderr + "\nTIMEOUT: evaluation exceeded 25s"), 200
+
+            return jsonify(success=(proc.returncode == 0), exit_code=proc.returncode, stdout=stdout, stderr=stderr)
+        finally:
+            try:
+                shutil.rmtree(tempdir)
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"Workspace evaluate error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Evaluation failed"), 500
 
 if __name__ == "__main__":
     # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)

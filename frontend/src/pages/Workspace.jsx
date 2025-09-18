@@ -16,6 +16,7 @@ export default function Workspace() {
   const [view, setView] = useState('editor')
   const [chat, setChat] = useState([])
   const [input, setInput] = useState('')
+  const [run, setRun] = useState({ exitCode: null, stdout: '', stderr: '', loading: false })
 
   const lsKey = useMemo(() => workspace ? `nova_ws_${workspace.id}` : null, [workspace])
 
@@ -53,7 +54,7 @@ export default function Workspace() {
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || 'Failed to open workspace')
         const initialFiles = data.files || {}
-        const key = data.workspace ? `nova_ws_${data.workspace.id}` : null
+        const key = data.workspace ? `nova_ws_${data.workspace.id}` : lsKey
         const merged = applyLocalEdits(initialFiles, key)
         setWorkspace(data.workspace)
         setFiles(merged)
@@ -68,7 +69,6 @@ export default function Workspace() {
       }
     }
     create()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId, token])
 
   // Update tier and view when workspace changes
@@ -105,7 +105,7 @@ export default function Workspace() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to switch level')
-      const key = data.workspace ? `nova_ws_${data.workspace.id}` : null
+      const key = data.workspace ? `nova_ws_${data.workspace.id}` : lsKey
       const initialFiles = data.files || {}
       const merged = applyLocalEdits(initialFiles, key)
       setWorkspace(data.workspace)
@@ -172,7 +172,29 @@ export default function Workspace() {
               >{level}</button>
             ))}
           </div>
-          <button title="Evaluate (runner not attached yet)" disabled style={{ opacity: 0.6, cursor: 'not-allowed', border: '1px solid #000', padding: '0.5rem 0.75rem', background: '#fff' }}>Evaluate</button>
+          <button
+            title="Run evaluation"
+            onClick={async () => {
+              setRun({ exitCode: null, stdout: '', stderr: '', loading: true })
+              try {
+                const res = await fetch(`/api/workspaces/${taskId}/evaluate`, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ files, runtime: workspace?.runtime })
+                })
+                const data = await res.json()
+                setRun({ exitCode: data.exit_code, stdout: data.stdout || '', stderr: data.stderr || '', loading: false })
+                setView('logs')
+              } catch (e) {
+                setRun({ exitCode: -1, stdout: '', stderr: String(e), loading: false })
+                setView('logs')
+              }
+            }}
+            style={{ border: '1px solid #000', padding: '0.5rem 0.75rem', background: '#fff' }}
+          >{run.loading ? 'Evaluating…' : 'Evaluate'}</button>
           <button onClick={() => navigate(-1)} style={{ border: '1px solid #000', padding: '0.5rem 0.75rem', background: '#fff' }}>Back</button>
         </div>
       </div>
@@ -323,10 +345,15 @@ export default function Workspace() {
                     body: JSON.stringify({ message: userMsg, tier, files })
                   })
                   const data = await res.json()
-                  const entry = { user: userMsg, tips: data?.response?.tips || [], patch: data?.patch || null }
+                  const entry = {
+                    user: userMsg,
+                    explanation: data?.response?.explanation || '',
+                    tips: data?.response?.tips || [],
+                    patch: data?.patch || null
+                  }
                   setChat((prev) => [...prev, entry])
                 } catch (err) {
-                  setChat((prev) => [...prev, { user: userMsg, tips: ['Assistant unavailable.'] }])
+                  setChat((prev) => [...prev, { user: userMsg, explanation: 'Assistant unavailable.', tips: [] }])
                 }
               }}
               style={{ display: 'flex', gap: 8, padding: 12, borderTop: '1px solid #eee' }}
@@ -358,7 +385,27 @@ export default function Workspace() {
         {view === 'logs' && (
           <div style={{ padding: 12 }}>
             <h4 style={{ marginTop: 0 }}>Logs</h4>
-            <p>Runner not attached yet. Execution output will appear here once enabled.</p>
+            {run.loading ? (
+              <p>Evaluating…</p>
+            ) : (
+              <>
+                <div style={{ marginBottom: 8 }}>
+                  Status: {run.exitCode === null ? '—' : run.exitCode === 0 ? 'Passed ✅' : `Failed (code ${run.exitCode})`}
+                </div>
+                {run.stdout && (
+                  <details open>
+                    <summary>stdout</summary>
+                    <pre style={{ whiteSpace: 'pre-wrap', background: '#fafafa', padding: 12 }}>{run.stdout}</pre>
+                  </details>
+                )}
+                {run.stderr && (
+                  <details>
+                    <summary>stderr</summary>
+                    <pre style={{ whiteSpace: 'pre-wrap', background: '#fff5f5', padding: 12 }}>{run.stderr}</pre>
+                  </details>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
