@@ -8,3 +8,4 @@ furthermore, the tasks page should be split between a place to choose tasks and 
 
 An education page ( leave this blank for now, ill fill it later)
 
+Note: OpenAI API key is now stored securely in backend/.env file (see SETUP.md for configuration instructions)

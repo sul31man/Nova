@@ -1,6 +1,155 @@
 /* Import typewriter-style fonts */
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
+/* Landing Page Styles */
+.landing-container {
+  background: white;
+  min-height: 100vh;
+  margin: -2rem;
+  padding: 2rem;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-content {
+  max-width: 800px;
+  text-align: center;
+  animation: fadeInUp 1.2s ease-out;
+}
+
+.animated-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.nova-title {
+  font-family: 'JetBrains Mono', 'Space Mono', 'Courier New', monospace;
+  font-size: 4rem;
+  font-weight: 600;
+  color: #000;
+  letter-spacing: 3px;
+  margin: 0;
+  margin-right: 0.5rem;
+}
+
+.title-cursor {
+  width: 4px;
+  height: 4rem;
+  background: #000;
+  animation: blink 1.2s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.landing-tagline {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.3rem;
+  color: #666;
+  margin-bottom: 2rem;
+  font-weight: 400;
+  letter-spacing: 1px;
+}
+
+.landing-description {
+  font-family: 'Space Mono', monospace;
+  font-size: 1rem;
+  color: #888;
+  margin-bottom: 3rem;
+  line-height: 1.8;
+}
+
+.landing-description p {
+  margin: 0.5rem 0;
+}
+
+.api-status-minimal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: #999;
+  margin-bottom: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.5);
+}
+
+.status-dot.offline {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+}
+
+.landing-cta {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-button, .cta-button-secondary {
+  font-family: 'JetBrains Mono', monospace;
+  padding: 1rem 2rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-decoration: none;
+  border: 2px solid #000;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.cta-button {
+  background: #000;
+  color: white;
+}
+
+.cta-button:hover {
+  background: white;
+  color: #000;
+}
+
+.cta-button-secondary {
+  background: white;
+  color: #000;
+}
+
+.cta-button-secondary:hover {
+  background: #000;
+  color: white;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Manifesto Page Styles (shared with old home styles) */
 .home-container {
   background: white;
   min-height: 100vh;
@@ -22,6 +171,15 @@
   color: #000;
   text-align: center;
   letter-spacing: 1px;
+}
+
+.home-subtitle {
+  font-family: 'Space Mono', monospace;
+  font-size: 1.1rem;
+  color: #666;
+  text-align: center;
+  margin-bottom: 3rem;
+  line-height: 1.6;
 }
 
 .api-status {
@@ -76,9 +234,31 @@
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .home-container {
+  .landing-container, .home-container {
     margin: -1rem;
     padding: 1rem;
+  }
+  
+  .nova-title {
+    font-size: 2.5rem;
+  }
+  
+  .title-cursor {
+    height: 2.5rem;
+  }
+  
+  .landing-tagline {
+    font-size: 1rem;
+  }
+  
+  .landing-cta {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .cta-button, .cta-button-secondary {
+    width: 100%;
+    max-width: 300px;
   }
   
   .home-title {

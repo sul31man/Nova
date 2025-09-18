@@ -1,56 +1,33 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import './Marketplace.css'
 
 export default function Marketplace() {
   const [selectedTask, setSelectedTask] = useState(null)
+  const [availableTasks, setAvailableTasks] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  // Mock task data - in a real app this would come from your backend
-  const availableTasks = [
-    {
-      id: 1,
-      title: "Design Solar Panel Mounting System",
-      description: "Create a lightweight, adjustable mounting system for residential solar panels that can adapt to different roof angles and materials.",
-      difficulty: "Intermediate",
-      estimatedHours: "8-12 hours",
-      skills: ["Mechanical Design", "CAD", "Materials Engineering"],
-      reward: "150 credits",
-      posted: "2 hours ago",
-      applicants: 3
-    },
-    {
-      id: 2,
-      title: "Develop Community Water Filtration Protocol",
-      description: "Research and design a scalable water filtration system for rural communities using locally available materials.",
-      difficulty: "Advanced",
-      estimatedHours: "15-20 hours",
-      skills: ["Chemical Engineering", "Research", "Documentation"],
-      reward: "300 credits",
-      posted: "5 hours ago",
-      applicants: 7
-    },
-    {
-      id: 3,
-      title: "Optimize Traffic Light Algorithm",
-      description: "Analyze current traffic patterns and propose an improved algorithm for traffic light timing in urban intersections.",
-      difficulty: "Beginner",
-      estimatedHours: "4-6 hours",
-      skills: ["Data Analysis", "Algorithm Design", "Urban Planning"],
-      reward: "100 credits",
-      posted: "1 day ago",
-      applicants: 12
-    },
-    {
-      id: 4,
-      title: "Create Emergency Shelter Framework",
-      description: "Design a modular, rapid-deployment shelter system for disaster relief that can be assembled by non-specialists.",
-      difficulty: "Advanced",
-      estimatedHours: "20-25 hours",
-      skills: ["Structural Engineering", "Disaster Response", "Modular Design"],
-      reward: "400 credits",
-      posted: "6 hours ago",
-      applicants: 5
+  // Fetch tasks from backend
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('/api/tasks')
+      if (!response.ok) {
+        throw new Error('Failed to fetch tasks')
+      }
+      const data = await response.json()
+      setAvailableTasks(data.tasks || [])
+      setIsLoading(false)
+    } catch (err) {
+      setError('Failed to load tasks')
+      setIsLoading(false)
+      console.error('Error fetching tasks:', err)
     }
-  ]
+  }
+
 
   const handleTaskSelect = (task) => {
     setSelectedTask(task)
@@ -70,9 +47,20 @@ export default function Marketplace() {
           Choose what interests you and contribute to building the future.
         </p>
 
-        <div className="marketplace-layout">
-          <div className="task-list">
-            <h2 className="section-title">Available Tasks</h2>
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="loading-message">
+            Loading tasks...
+          </div>
+        ) : (
+          <div className="marketplace-layout">
+            <div className="task-list">
+              <h2 className="section-title">Available Tasks</h2>
             <div className="filter-section">
               <select className="filter-select">
                 <option>All Difficulties</option>
@@ -106,15 +94,15 @@ export default function Marketplace() {
                   <div className="task-meta">
                     <div className="meta-item">
                       <span className="meta-label">Time:</span>
-                      <span>{task.estimatedHours}</span>
+                      <span>{task.estimated_hours}</span>
                     </div>
                     <div className="meta-item">
                       <span className="meta-label">Reward:</span>
-                      <span className="reward">{task.reward}</span>
+                      <span className="reward">{task.reward_credits} credits</span>
                     </div>
                     <div className="meta-item">
                       <span className="meta-label">Applicants:</span>
-                      <span>{task.applicants}</span>
+                      <span>{task.applicants_count || 0}</span>
                     </div>
                   </div>
                   <div className="task-skills">
@@ -122,7 +110,7 @@ export default function Marketplace() {
                       <span key={skill} className="skill-tag">{skill}</span>
                     ))}
                   </div>
-                  <div className="task-posted">Posted {task.posted}</div>
+                  <div className="task-posted">Posted {new Date(task.created_at).toLocaleDateString()}</div>
                 </div>
               ))}
             </div>
@@ -140,13 +128,13 @@ export default function Marketplace() {
                     <strong>Difficulty:</strong> {selectedTask.difficulty}
                   </div>
                   <div className="detail-item">
-                    <strong>Estimated Time:</strong> {selectedTask.estimatedHours}
+                    <strong>Estimated Time:</strong> {selectedTask.estimated_hours}
                   </div>
                   <div className="detail-item">
-                    <strong>Reward:</strong> {selectedTask.reward}
+                    <strong>Reward:</strong> {selectedTask.reward_credits} credits
                   </div>
                   <div className="detail-item">
-                    <strong>Current Applicants:</strong> {selectedTask.applicants}
+                    <strong>Current Applicants:</strong> {selectedTask.applicants_count || 0}
                   </div>
                 </div>
 
@@ -165,7 +153,8 @@ export default function Marketplace() {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   )

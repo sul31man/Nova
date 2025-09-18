@@ -3,111 +3,136 @@ import './Tasks.css'
 
 export default function Tasks() {
   const [engineeringProblem, setEngineeringProblem] = useState('')
-  const [aiQuestions, setAiQuestions] = useState([])
-  const [currentQuestion, setCurrentQuestion] = useState('')
-  const [answers, setAnswers] = useState({})
+  const [projectId, setProjectId] = useState(null)
+  const [currentQuestion, setCurrentQuestion] = useState(null)
+  const [totalQuestionsSoFar, setTotalQuestionsSoFar] = useState(0)
+  const [answers, setAnswers] = useState([])
   const [generatedTasks, setGeneratedTasks] = useState([])
   const [activeTab, setActiveTab] = useState('submit')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState(null)
 
-  // Mock AI questions based on engineering problem type
-  const mockAiQuestions = [
-    "What is the scale of this project? (Individual, Community, City-wide, Global)",
-    "What resources are currently available for this project?",
-    "What are the main constraints you're facing? (Budget, Time, Materials, Skills)",
-    "Who is the target user or beneficiary of this solution?",
-    "What similar solutions already exist, and why aren't they sufficient?",
-    "What would success look like for this project?",
-    "What are the potential risks or failure points?",
-    "What timeline are you working with?"
-  ]
-
-  const handleProblemSubmit = () => {
+  const handleProblemSubmit = async () => {
     if (!engineeringProblem.trim()) return
     
     setIsProcessing(true)
-    // Simulate AI processing
-    setTimeout(() => {
-      setAiQuestions(mockAiQuestions.slice(0, 5)) // Start with first 5 questions
-      setCurrentQuestion(mockAiQuestions[0])
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/projects/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: engineeringProblem
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to create project')
+      }
+      
+      const data = await response.json()
+      setProjectId(data.project_id)
+      setCurrentQuestion(data.current_question)
+      setTotalQuestionsSoFar(data.total_questions_so_far)
       setIsProcessing(false)
-    }, 1000)
-  }
-
-  const handleAnswerSubmit = (answer) => {
-    const updatedAnswers = { ...answers, [currentQuestion]: answer }
-    setAnswers(updatedAnswers)
-    
-    const answeredQuestions = Object.keys(updatedAnswers).length
-    const nextQuestionIndex = answeredQuestions
-    
-    if (nextQuestionIndex < aiQuestions.length) {
-      setCurrentQuestion(aiQuestions[nextQuestionIndex])
-    } else {
-      // Generate tasks based on answers
-      generateTasks(updatedAnswers)
+      
+    } catch (err) {
+      setError('Failed to start AI analysis. Please try again.')
+      setIsProcessing(false)
+      console.error('Error creating project:', err)
     }
   }
 
-  const generateTasks = (allAnswers) => {
-    setIsProcessing(true)
+  const handleAnswerSubmit = async (answer) => {
+    if (!answer.trim() || !currentQuestion || !projectId) return
     
-    // Mock task generation based on answers
-    setTimeout(() => {
-      const mockTasks = [
-        {
-          id: 1,
-          title: `Research Phase: ${engineeringProblem.split(' ').slice(0, 3).join(' ')}`,
-          description: "Conduct comprehensive research on existing solutions, technologies, and methodologies.",
-          estimatedHours: "8-12 hours",
-          skills: ["Research", "Analysis", "Documentation"],
-          difficulty: "Beginner"
+    setIsProcessing(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/answer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         },
-        {
-          id: 2,
-          title: `Design & Planning: System Architecture`,
-          description: "Create detailed system design, specifications, and implementation roadmap.",
-          estimatedHours: "15-20 hours",
-          skills: ["System Design", "Planning", "Technical Writing"],
-          difficulty: "Intermediate"
-        },
-        {
-          id: 3,
-          title: `Prototype Development`,
-          description: "Build initial prototype or proof-of-concept based on research and design.",
-          estimatedHours: "20-30 hours",
-          skills: ["Programming", "Engineering", "Problem Solving"],
-          difficulty: "Advanced"
-        },
-        {
-          id: 4,
-          title: `Testing & Validation`,
-          description: "Test prototype, gather feedback, and validate solution effectiveness.",
-          estimatedHours: "10-15 hours",
-          skills: ["Testing", "Data Analysis", "User Research"],
-          difficulty: "Intermediate"
-        },
-        {
-          id: 5,
-          title: `Documentation & Knowledge Transfer`,
-          description: "Create comprehensive documentation and prepare for knowledge transfer.",
-          estimatedHours: "6-10 hours",
-          skills: ["Documentation", "Communication", "Training"],
-          difficulty: "Beginner"
-        }
-      ]
+        body: JSON.stringify({
+          question_id: currentQuestion.id,
+          answer: answer
+        })
+      })
       
-      setGeneratedTasks(mockTasks)
+      if (!response.ok) {
+        throw new Error('Failed to submit answer')
+      }
+      
+      const data = await response.json()
+      
+      // Add this answer to our answers array
+      const newAnswer = {
+        question_text: currentQuestion.question_text,
+        answer_text: answer
+      }
+      setAnswers(prev => [...prev, newAnswer])
+      
+      if (data.all_answered) {
+        // Sufficient context gathered, generate tasks
+        await generateTasks()
+      } else {
+        // AI generated next adaptive question
+        setCurrentQuestion(data.next_question)
+        setTotalQuestionsSoFar(data.total_questions_so_far)
+      }
+      
       setIsProcessing(false)
-    }, 2000)
+      
+    } catch (err) {
+      setError('Failed to submit answer. Please try again.')
+      setIsProcessing(false)
+      console.error('Error submitting answer:', err)
+    }
+  }
+
+  const generateTasks = async () => {
+    if (!projectId) return
+    
+    setIsProcessing(true)
+    setError(null)
+    
+    try {
+      const response = await fetch(`/api/projects/${projectId}/generate-tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate tasks')
+      }
+      
+      const data = await response.json()
+      setGeneratedTasks(data.tasks)
+      setCurrentQuestion(null) // Clear current question
+      setIsProcessing(false)
+      
+    } catch (err) {
+      setError('Failed to generate tasks. Please try again.')
+      setIsProcessing(false)
+      console.error('Error generating tasks:', err)
+    }
   }
 
   const resetProcess = () => {
     setEngineeringProblem('')
-    setAiQuestions([])
-    setCurrentQuestion('')
-    setAnswers({})
+    setProjectId(null)
+    setCurrentQuestion(null)
+    setTotalQuestionsSoFar(0)
+    setAnswers([])
     setGeneratedTasks([])
+    setError(null)
   }
 
   return (
@@ -117,6 +142,12 @@ export default function Tasks() {
         <p className="tasks-subtitle">
           Transform complex engineering problems into actionable tasks through AI-guided analysis
         </p>
+
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
 
         <div className="tab-navigation">
           <button 
@@ -159,10 +190,10 @@ export default function Tasks() {
               <div className="ai-questioning-section">
                 <h2 className="section-title">AI Analysis in Progress</h2>
                 <div className="progress-indicator">
-                  Question {Object.keys(answers).length + 1} of {aiQuestions.length}
+                  Question {totalQuestionsSoFar} (Adaptive AI Questioning)
                 </div>
                 <div className="question-card">
-                  <h3 className="ai-question">{currentQuestion}</h3>
+                  <h3 className="ai-question">{currentQuestion.question_text}</h3>
                   <textarea
                     className="answer-textarea"
                     placeholder="Your answer..."
@@ -177,18 +208,19 @@ export default function Tasks() {
                         textarea.value = ''
                       }
                     }}
+                    disabled={isProcessing}
                   >
-                    Submit Answer
+                    {isProcessing ? 'Processing...' : 'Submit Answer'}
                   </button>
                 </div>
                 
-                {Object.keys(answers).length > 0 && (
+                {answers.length > 0 && (
                   <div className="answered-questions">
                     <h4>Previous Answers:</h4>
-                    {Object.entries(answers).map(([question, answer], index) => (
+                    {answers.map((answer, index) => (
                       <div key={index} className="answered-item">
-                        <strong>Q: {question}</strong>
-                        <p>A: {answer}</p>
+                        <strong>Q: {answer.question_text}</strong>
+                        <p>A: {answer.answer_text}</p>
                       </div>
                     ))}
                   </div>
@@ -216,11 +248,15 @@ export default function Tasks() {
                       <div className="task-meta">
                         <div className="meta-item">
                           <span className="meta-label">Time:</span>
-                          <span>{task.estimatedHours}</span>
+                          <span>{task.estimated_hours}</span>
                         </div>
                         <div className="meta-item">
                           <span className="meta-label">Skills:</span>
                           <span>{task.skills.join(', ')}</span>
+                        </div>
+                        <div className="meta-item">
+                          <span className="meta-label">Reward:</span>
+                          <span>{task.reward_credits} credits</span>
                         </div>
                       </div>
                     </div>

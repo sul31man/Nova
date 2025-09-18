@@ -33,6 +33,16 @@
   line-height: 1.6;
 }
 
+.error-message {
+  font-family: 'JetBrains Mono', monospace;
+  background: #fee;
+  color: #c33;
+  padding: 1rem;
+  border: 1px solid #fcc;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
 .tab-navigation {
   display: flex;
   gap: 0;
