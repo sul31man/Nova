@@ -14,6 +14,8 @@ DATABASE_PATH = os.getenv('DATABASE_PATH', 'nova.db')
 def init_database():
     """Initialize the database with required tables"""
     conn = sqlite3.connect(DATABASE_PATH)
+    # Ensure we can access rows by column name during init
+    conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     
     # Projects table - stores engineering problems
@@ -145,7 +147,8 @@ def init_database():
     # Seed software templates if table is empty
     try:
         existing = cursor.execute('SELECT COUNT(1) as c FROM env_templates').fetchone()
-        count = existing['c'] if existing else 0
+        # Row factory may not always be set; support both tuple and Row
+        count = (existing['c'] if isinstance(existing, sqlite3.Row) else existing[0]) if existing else 0
         if count == 0:
             templates = EnvTemplateDB.default_software_templates()
             for tpl in templates:

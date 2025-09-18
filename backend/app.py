@@ -758,7 +758,10 @@ def create_workspace(current_user, task_id):
                 'name': template.get('name', template.get('id', 'inline')),
                 'runtime': template['runtime'],
                 'deps': template['deps'],
-                'evaluate': template.get('eval_config') or template.get('evaluate')
+                'evaluate': template.get('eval_config') or template.get('evaluate'),
+                'category': template.get('category'),
+                'tier': template.get('tier'),
+                'ui_config': template.get('ui_config', {})
             },
             'files': template['scaffold']
         })
@@ -766,6 +769,31 @@ def create_workspace(current_user, task_id):
         print(f"Create workspace error: {e}")
         traceback.print_exc()
         return jsonify(error="Failed to create workspace"), 500
+
+@app.post("/api/workspaces/<int:task_id>/assist")
+@token_required
+def workspace_assist(current_user, task_id):
+    """Lightweight code assistant stub. Returns guidance and optional file patch.
+    Body: { message, tier, files }
+    """
+    try:
+        data = request.get_json() or {}
+        message = (data.get('message') or '').strip()
+        tier = (data.get('tier') or 'medium').lower()
+        files = data.get('files') or {}
+
+        result = ai_service.workspace_assist(message, tier, files)
+        return jsonify({
+            'response': {
+                'tips': result.get('tips', []),
+                'explanation': result.get('explanation', ''),
+                'echo': message
+            },
+            'patch': result.get('patch')
+        })
+    except Exception as e:
+        print(f"Workspace assist error: {e}")
+        return jsonify(error="Assistant failed"), 500
 
 if __name__ == "__main__":
     # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)

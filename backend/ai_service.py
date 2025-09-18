@@ -259,6 +259,84 @@ class AITaskGenerator:
             }
         ]
 
+    # --- Workspace Assistance (Code Assistant) ---
+    def workspace_assist(self, message: str, tier: str, files: Dict[str, str]) -> Dict:
+        """
+        Provide code assistance inside the workspace.
+        Returns a dict: { 'tips': [...], 'explanation': str, 'patch': {'path': str, 'content': str} | None }
+        Uses OpenAI if API key is available; otherwise returns a heuristic fallback.
+        """
+        # Fallback (no API key or client error)
+        def fallback():
+            tips = []
+            if tier == 'high':
+                tips = [
+                    'Read tests first and list expected behaviors.',
+                    'Implement the smallest change to satisfy one failing test at a time.',
+                ]
+            elif tier == 'medium':
+                tips = ['Open test_main.py, identify required functions, implement them in main.py.']
+            else:
+                tips = ['Implement required functions and make all tests pass.']
+            explanation = 'Focus on the test expectations and update the implementation accordingly.'
+            patch = None
+            if 'main.py' in files and 'def solve' in files['main.py'] and 'return x' not in files['main.py'] and 'solve' in message.lower():
+                patch = {'path': 'main.py', 'content': 'def solve(x):\n    return x\n\n' + files['main.py']}
+                explanation = 'Added a minimal implementation of solve(x) returning the input so the identity tests pass. Replace with real logic if needed.'
+            return {'tips': tips, 'explanation': explanation, 'patch': patch}
+
+        if not openai.api_key:
+            return fallback()
+
+        try:
+            # Build a compact representation of files (cap size)
+            MAX_CHARS = 12000
+            parts = []
+            total = 0
+            for path, content in files.items():
+                snippet = content[:4000]
+                blob = f"FILE: {path}\n" + snippet
+                if total + len(blob) > MAX_CHARS:
+                    break
+                parts.append(blob)
+                total += len(blob)
+            files_context = "\n\n".join(parts) if parts else "(no files)"
+
+            sys = (
+                "You are a precise coding assistant inside a constrained IDE. "
+                "Respond with JSON: {\"explanation\": str, \"tips\": [str], \"patch\": {\"path\": str, \"content\": str} | null}. "
+                "Patch must be a full file content replacement (no diffs). "
+                "Only include a patch if confident."
+            )
+            usr = (
+                f"Tier: {tier}\n\n"
+                f"User message:\n{message}\n\n"
+                f"Current files (truncated):\n{files_context}\n\n"
+                "Return JSON only, no prose. Include explanation summarizing the change."
+            )
+
+            resp = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": sys},
+                    {"role": "user", "content": usr}
+                ],
+                temperature=0.2,
+                max_tokens=800
+            )
+            text = resp.choices[0].message.content.strip()
+            data = json.loads(text)
+            tips = data.get('tips', []) if isinstance(data, dict) else []
+            explanation = data.get('explanation') if isinstance(data, dict) else ''
+            patch = data.get('patch') if isinstance(data, dict) else None
+            # Basic sanity checks
+            if patch and not (isinstance(patch, dict) and 'path' in patch and 'content' in patch):
+                patch = None
+            return {'tips': tips, 'explanation': explanation or '', 'patch': patch}
+        except Exception as e:
+            print(f"workspace_assist error: {e}")
+            return fallback()
+
     def generate_learning_plan(self, inputs: Dict) -> Dict:
         """Generate a structured, step-by-step learning plan.
 
