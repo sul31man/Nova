@@ -29,6 +29,56 @@
   padding: 0;
 }
 
+/* Mathematical grid overlay (subtle) */
+.math-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(#000 0.4px, transparent 0.5px), /* tiny points */
+    repeating-linear-gradient(
+      to right,
+      rgba(0,0,0,0.06) 0px,
+      rgba(0,0,0,0.06) 1px,
+      transparent 1px,
+      transparent 40px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.06) 0px,
+      rgba(0,0,0,0.06) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+  background-size: 2px 2px, 40px 40px, 40px 40px;
+  background-position: 0 0, 0 0, 0 0;
+  opacity: 0.5;
+}
+
+/* Corner markers for a technical feel */
+.hero-inner::before,
+.hero-inner::after {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 2px solid #000;
+  opacity: 0.15;
+}
+.hero-inner::before {
+  top: 1.5rem;
+  left: 1.5rem;
+  border-right: none;
+  border-bottom: none;
+}
+.hero-inner::after {
+  bottom: 1.5rem;
+  right: 1.5rem;
+  border-left: none;
+  border-top: none;
+}
+
 /* Network Canvas */
 .network-canvas {
   position: absolute !important;
@@ -49,6 +99,48 @@
   padding: 2rem;
   text-align: center;
   color: #000;
+}
+
+/* Equation strip */
+.equation {
+  font-family: 'JetBrains Mono', 'Space Mono', monospace;
+  display: inline-block;
+  margin: 1rem auto 2.5rem auto;
+  padding: 0.9rem 1.1rem;
+  border: 1.5px solid #000;
+  border-radius: 8px;
+  background: #fff;
+  color: #000;
+  box-shadow: 4px 4px 0 0 rgba(0,0,0,0.15);
+}
+.equation .op { font-weight: 700; }
+.equation .sym { letter-spacing: 0.03em; }
+.equation .constraint {
+  display: block;
+  text-align: left;
+  margin-top: 0.6rem;
+  color: #333;
+}
+.equation .brace {
+  display: inline-block;
+  padding: 0 0.4rem;
+}
+
+/* Small axis legend chips */
+.legend {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 5;
+  display: flex;
+  gap: 0.4rem;
+}
+.chip {
+  border: 1px solid #000;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.75rem;
 }
 
 /* Hero Title */
@@ -102,6 +194,15 @@
   font-weight: bold;
 }
 
+/* Technical dotted leaders */
+.hero-features li {
+  background-image: linear-gradient(to right, rgba(0,0,0,0.25) 33%, rgba(255,255,255,0) 0%);
+  background-position: bottom left;
+  background-size: 6px 1px;
+  background-repeat: repeat-x;
+  padding-bottom: 6px;
+}
+
 .hero-features strong {
   color: #000;
   font-weight: 600;
@@ -145,6 +246,15 @@
   justify-content: center;
   flex-wrap: wrap;
   align-items: center;
+}
+
+/* Button micro-grid texture */
+.cta-primary, .cta-secondary {
+  background-image: radial-gradient(rgba(0,0,0,0.12) 1px, transparent 1px);
+  background-size: 6px 6px;
+}
+.cta-primary:hover, .cta-secondary:hover {
+  background-image: none;
 }
 
 .cta-primary, .cta-secondary {

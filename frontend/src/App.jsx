@@ -129,6 +129,7 @@ const AppContent = () => {
               </NavLink>
             </div>
           </div>
+          <NavLink to="/my-tasks" style={linkStyle}>Execute</NavLink>
           <NavLink to="/tasks" style={linkStyle}>Tasks</NavLink>
           <NavLink to="/marketplace" style={linkStyle}>Marketplace</NavLink>
           <NavLink to="/education" style={linkStyle}>Education</NavLink>
@@ -229,4 +230,3 @@ export default function App() {
     </AuthProvider>
   )
 }
-

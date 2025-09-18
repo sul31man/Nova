@@ -614,9 +614,14 @@ def update_application_status(current_user, application_id):
         if not application:
             return jsonify(error="Application not found"), 404
         
-        # Get the task to verify the current user is the task creator
+        # Get the task and verify the current user is the task's project owner
         task = TaskDB.get_task(application['task_id'])
-        if not task or task['user_id'] != current_user['id']:
+        if not task:
+            return jsonify(error="Task not found"), 404
+        
+        # Tasks don't directly store owner; verify via the parent project
+        project = ProjectDB.get_project(task['project_id'])
+        if not project or project.get('user_id') != current_user['id']:
             return jsonify(error="Unauthorized to modify this application"), 403
         
         # Update application status
@@ -639,4 +644,3 @@ def update_application_status(current_user, application_id):
 if __name__ == "__main__":
     # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)
     app.run(host="127.0.0.1", port=5001, debug=True)
-

@@ -238,7 +238,14 @@ export default function Home() {
     <div className="home-page">
       {/* Hero Section with Animated Network */}
       <section className="hero">
+        {/* Subtle math grid under the particle network */}
+        <div className="math-grid" aria-hidden="true" />
         <AnimatedNetwork />
+        <div className="legend" aria-hidden="true">
+          <span className="chip">Σ productivity</span>
+          <span className="chip">constraints</span>
+          <span className="chip">credits</span>
+        </div>
         <div className="hero-inner">
           <h1 className="hero-title">
             Scheduling the most successful compute cluster in history.
@@ -247,6 +254,18 @@ export default function Home() {
           <p className="hero-subtitle">
             Activating humanity as the world's most powerful distributed system — where AI and people learn, build, and solve the world's problems together.
           </p>
+
+          {/* Mathematical “objective + constraints” strip */}
+          <div className="equation" role="img" aria-label="maximize sum productivity subject to constraints">
+            <span className="op">maximize</span>
+            <span className="sym"> Σ</span>
+            <span> productivity_i</span>
+            <span className="constraint">
+              s.t. <span className="brace">[</span>
+              skills_match ≥ 1 • time ≤ deadline • credits conserved
+              <span className="brace">]</span>
+            </span>
+          </div>
           
           <ul className="hero-features">
             <li>
