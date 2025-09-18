@@ -21,7 +21,54 @@
 
 .edu-subtitle {
   color: #666;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Beginner Help Section */
+.beginner-help {
+  margin-bottom: 2rem;
+}
+
+.help-card {
+  background: #f0f7ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.help-card h4 {
+  margin: 0 0 0.75rem 0;
+  color: #1e40af;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+}
+
+.help-card ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.help-card li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.help-card li:last-child {
+  margin-bottom: 0;
+}
+
+.help-card strong {
+  color: #1e40af;
+}
+
+/* Field Help Text */
+.field-help {
+  font-size: 0.85rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  font-style: italic;
 }
 
 .edu-steps {
@@ -196,6 +243,184 @@
   margin: 0.25rem 0 0.5rem 1rem;
 }
 
+/* IDE Integration Styles */
+.ide-header-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #2a2a2a;
+  color: white;
+  border-bottom: 1px solid #333;
+}
+
+.exit-ide-btn {
+  background: #444;
+  color: #ccc;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.exit-ide-btn:hover {
+  background: #555;
+  color: #fff;
+}
+
+.ide-header-bar h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #e0e0e0;
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.project-header h3,
+.project-header h4 {
+  flex: 1;
+  margin: 0;
+}
+
+.start-project-btn {
+  background: #4ade80;
+  color: #000;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.start-project-btn:hover {
+  background: #22c55e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(74, 222, 128, 0.3);
+}
+
+.start-project-btn.capstone-btn {
+  background: #f59e0b;
+  color: #000;
+}
+
+.start-project-btn.capstone-btn:hover {
+  background: #d97706;
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+.acceptance-criteria {
+  margin-top: 1rem;
+}
+
+.acceptance-criteria h5 {
+  margin: 0 0 0.5rem 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.acceptance-criteria ul {
+  margin: 0.25rem 0 0.5rem 1rem;
+}
+
+.acceptance-criteria li {
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+/* Save Plan Functionality */
+.plan-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.plan-summary-header > div:first-child {
+  flex: 1;
+}
+
+.save-plan-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.save-plan-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.save-plan-btn:hover:not(:disabled) {
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+.save-plan-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.save-hint {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+  text-align: right;
+  font-style: italic;
+}
+
+.save-message {
+  font-size: 0.85rem;
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.save-message:contains('✅') {
+  background: #ecfdf5;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.save-message:contains('❌') {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
 @media (max-width: 768px) {
   .education-container {
     margin: -1rem;
@@ -203,6 +428,26 @@
   }
   .grid-2 {
     grid-template-columns: 1fr;
+  }
+  
+  .project-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .start-project-btn {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .ide-header-bar {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.5rem;
+  }
+  
+  .exit-ide-btn {
+    align-self: flex-start;
   }
 }
 

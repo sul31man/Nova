@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB, UserDB
+from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB, UserDB, LearningPlanDB
 from ai_service import ai_service
 import traceback
 import os
@@ -183,6 +183,115 @@ def generate_learning_plan():
         print(f"Education plan error: {e}")
         print(traceback.format_exc())
         return jsonify(error="Failed to generate learning plan"), 500
+
+# Education: save learning plan
+@app.post("/api/education/save-plan")
+@token_required
+def save_learning_plan(current_user):
+    """Save a learning plan to user's profile"""
+    try:
+        data = request.get_json()
+        if not data or 'plan' not in data or 'inputs' not in data:
+            return jsonify(error="Plan data and inputs are required"), 400
+        
+        plan_data = data['plan']
+        inputs = data['inputs']
+        title = data.get('title', f"Learning Plan - {plan_data.get('summary', {}).get('objective', 'Untitled')}")
+        
+        plan_id = LearningPlanDB.save_plan(
+            current_user['id'], 
+            title, 
+            plan_data, 
+            inputs
+        )
+        
+        return jsonify({
+            'message': 'Learning plan saved successfully',
+            'plan_id': plan_id
+        })
+        
+    except Exception as e:
+        print(f"Save plan error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to save learning plan"), 500
+
+# Education: get user's learning plans
+@app.get("/api/education/my-plans")
+@token_required
+def get_my_learning_plans(current_user):
+    """Get all learning plans for the current user"""
+    try:
+        plans = LearningPlanDB.get_user_plans(current_user['id'])
+        return jsonify(plans=plans)
+    except Exception as e:
+        print(f"Get plans error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to get learning plans"), 500
+
+# Education: get specific learning plan
+@app.get("/api/education/plan/<int:plan_id>")
+@token_required
+def get_learning_plan(current_user, plan_id):
+    """Get a specific learning plan"""
+    try:
+        plan = LearningPlanDB.get_plan(plan_id)
+        if not plan or plan['user_id'] != current_user['id']:
+            return jsonify(error="Plan not found or access denied"), 404
+        
+        return jsonify(plan)
+    except Exception as e:
+        print(f"Get plan error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to get learning plan"), 500
+
+# Education: update plan progress
+@app.put("/api/education/plan/<int:plan_id>/progress")
+@token_required
+def update_plan_progress(current_user, plan_id):
+    """Update progress for a learning plan"""
+    try:
+        data = request.get_json()
+        if not data or 'progress' not in data:
+            return jsonify(error="Progress data is required"), 400
+        
+        # Verify ownership
+        plan = LearningPlanDB.get_plan(plan_id)
+        if not plan or plan['user_id'] != current_user['id']:
+            return jsonify(error="Plan not found or access denied"), 404
+        
+        LearningPlanDB.update_progress(plan_id, data['progress'])
+        
+        return jsonify(message="Progress updated successfully")
+    except Exception as e:
+        print(f"Update progress error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to update progress"), 500
+
+# Education: chatbot for IDE help
+@app.post("/api/education/chat")
+@token_required
+def education_chat(current_user):
+    """Chat with AI assistant for learning help"""
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify(error="Message is required"), 400
+        
+        user_message = data['message']
+        context = data.get('context', {})  # Current project, step, code, etc.
+        
+        # Generate contextual AI response
+        response = ai_service.generate_chat_response(user_message, context)
+        
+        return jsonify({
+            'response': response,
+            'timestamp': datetime.datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        print(f"Chat error: {e}")
+        print(traceback.format_exc())
+        return jsonify(error="Failed to get chat response"), 500
 
 @app.post("/api/projects/create")
 @token_required
@@ -465,6 +574,67 @@ def update_task_status(current_user, task_id):
         print(f"Error updating task status: {e}")
         print(traceback.format_exc())
         return jsonify(error="Failed to update task status"), 500
+
+@app.get("/api/my-applications")
+@token_required
+def get_my_applications(current_user):
+    """Get applications sent by and received by the current user"""
+    try:
+        user_id = current_user['id']
+        
+        # Get applications sent by this user
+        sent_applications = TaskDB.get_user_sent_applications(user_id)
+        
+        # Get applications received for tasks created by this user
+        received_applications = TaskDB.get_user_received_applications(user_id)
+        
+        return jsonify({
+            'sent': sent_applications,
+            'received': received_applications
+        })
+        
+    except Exception as e:
+        print(f"Get my applications error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to get applications"), 500
+
+@app.put("/api/applications/<int:application_id>/status")
+@token_required
+def update_application_status(current_user, application_id):
+    """Accept or reject a task application"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if new_status not in ['accepted', 'rejected']:
+            return jsonify(error="Invalid status. Must be 'accepted' or 'rejected'"), 400
+        
+        # Get the application to verify ownership
+        application = TaskDB.get_application(application_id)
+        if not application:
+            return jsonify(error="Application not found"), 404
+        
+        # Get the task to verify the current user is the task creator
+        task = TaskDB.get_task(application['task_id'])
+        if not task or task['user_id'] != current_user['id']:
+            return jsonify(error="Unauthorized to modify this application"), 403
+        
+        # Update application status
+        TaskDB.update_application_status(application_id, new_status)
+        
+        # If accepted, also update the task status to assigned
+        if new_status == 'accepted':
+            TaskDB.update_task_status(application['task_id'], 'assigned')
+        
+        return jsonify({
+            'success': True,
+            'message': f'Application {new_status} successfully'
+        })
+        
+    except Exception as e:
+        print(f"Update application status error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to update application status"), 500
 
 if __name__ == "__main__":
     # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)

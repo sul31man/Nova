@@ -1,11 +1,18 @@
 import React, { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
+import ProjectIDE from '../components/ProjectIDE'
 import './Education.css'
 
 export default function Education() {
+  const { user, token } = useAuth()
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [plan, setPlan] = useState(null)
+  const [currentProject, setCurrentProject] = useState(null)
+  const [showIDE, setShowIDE] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
 
   const [form, setForm] = useState({
     interests: '',
@@ -41,11 +48,95 @@ export default function Education() {
     }
   }
 
+  const startProject = (project) => {
+    setCurrentProject(project)
+    setShowIDE(true)
+  }
+
+  const completeProject = () => {
+    alert('🎉 Project completed! Moving to next project...')
+    setShowIDE(false)
+    setCurrentProject(null)
+    // Could advance to next project in sequence here
+  }
+
+  const exitIDE = () => {
+    setShowIDE(false)
+    setCurrentProject(null)
+  }
+
+  const savePlan = async () => {
+    if (!user || !token || !plan) {
+      setSaveMessage('Please sign in to save your plan')
+      return
+    }
+
+    setSaving(true)
+    setSaveMessage('')
+    
+    try {
+      const response = await fetch('/api/education/save-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          plan: plan,
+          inputs: form
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSaveMessage('✅ Plan saved to your profile!')
+        setTimeout(() => setSaveMessage(''), 3000)
+      } else {
+        setSaveMessage(`❌ ${data.error || 'Failed to save plan'}`)
+      }
+    } catch (error) {
+      setSaveMessage('❌ Failed to save plan')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  // Show IDE if a project is active
+  if (showIDE && currentProject) {
+    return (
+      <div className="education-container">
+        <div className="ide-header-bar">
+          <button className="exit-ide-btn" onClick={exitIDE}>
+            ← Back to Plan
+          </button>
+          <h2>Project: {currentProject.title}</h2>
+        </div>
+        <ProjectIDE 
+          project={currentProject} 
+          onComplete={completeProject}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="education-container">
       <div className="education-content">
         <h1 className="edu-title">Learn-to-earn: Spoon-fed upskilling</h1>
         <p className="edu-subtitle">We figure out your goals and build the shortest path to mastery.</p>
+        
+        <div className="beginner-help">
+          <div className="help-card">
+            <h4>📚 How it works:</h4>
+            <ol>
+              <li><strong>Tell us your interests</strong> - What excites you? AI, web development, robotics?</li>
+              <li><strong>Set your timeline</strong> - How fast do you want to learn?</li>
+              <li><strong>Get your custom plan</strong> - Week-by-week with projects and resources</li>
+              <li><strong>Code with our AI helper</strong> - Get instant help when you're stuck</li>
+            </ol>
+          </div>
+        </div>
 
         {/* Steps header */}
         <div className="edu-steps">
@@ -59,21 +150,27 @@ export default function Education() {
             <h3>What do you want to build?</h3>
             <div className="form-field">
               <label>Interests (what excites you?)</label>
+              <div className="field-help">
+                Tell us what you're passionate about - we'll build your learning around it!
+              </div>
               <textarea
                 value={form.interests}
                 onChange={(e) => handleChange('interests', e.target.value)}
                 rows={3}
-                placeholder="e.g., AI agents, chip design, bioinformatics, robotics..."
+                placeholder="e.g., Building AI assistants, designing computer chips, developing web apps, robotics..."
               />
             </div>
 
             <div className="form-field">
               <label>Target skills (comma separated)</label>
+              <div className="field-help">
+                What specific technologies do you want to learn? Don't worry if you're not sure - we'll suggest the best ones.
+              </div>
               <input
                 type="text"
                 value={form.target_skills}
                 onChange={(e) => handleChange('target_skills', e.target.value)}
-                placeholder="Python, React, CUDA, FEniCSx, control theory"
+                placeholder="Python, React, CUDA, Machine Learning, etc."
               />
             </div>
 
@@ -149,12 +246,27 @@ export default function Education() {
         {step === 3 && plan && (
           <div className="edu-plan">
             <div className="edu-card">
-              <h3>Plan Summary</h3>
-              <p><strong>Objective:</strong> {plan.summary?.objective}</p>
-              <p><strong>Duration:</strong> {plan.summary?.duration_weeks} weeks • {plan.summary?.weekly_hours} hrs/week</p>
-              {plan.summary?.recommended_stack?.length > 0 && (
-                <p><strong>Recommended stack:</strong> {plan.summary.recommended_stack.join(', ')}</p>
-              )}
+              <div className="plan-summary-header">
+                <div>
+                  <h3>Plan Summary</h3>
+                  <p><strong>Objective:</strong> {plan.summary?.objective}</p>
+                  <p><strong>Duration:</strong> {plan.summary?.duration_weeks} weeks • {plan.summary?.weekly_hours} hrs/week</p>
+                  {plan.summary?.recommended_stack?.length > 0 && (
+                    <p><strong>Recommended stack:</strong> {plan.summary.recommended_stack.join(', ')}</p>
+                  )}
+                </div>
+                <div className="save-plan-section">
+                  <button 
+                    className="save-plan-btn"
+                    onClick={savePlan}
+                    disabled={saving || !user}
+                  >
+                    {saving ? '💾 Saving...' : '💾 Save Plan'}
+                  </button>
+                  {!user && <p className="save-hint">Sign in to save your plan</p>}
+                  {saveMessage && <p className="save-message">{saveMessage}</p>}
+                </div>
+              </div>
             </div>
 
             {plan.weeks?.map((w) => (
@@ -187,21 +299,43 @@ export default function Education() {
                   </ul>
                 </div>
                 <div className="project">
-                  <h4>Weekly Project: {w.project?.title}</h4>
+                  <div className="project-header">
+                    <h4>Weekly Project: {w.project?.title}</h4>
+                    <button 
+                      className="start-project-btn"
+                      onClick={() => startProject(w.project)}
+                    >
+                      🚀 Start Project
+                    </button>
+                  </div>
                   <p>{w.project?.description}</p>
-                  <ul>
-                    {w.project?.acceptance_criteria?.map((c, i) => (<li key={i}>{c}</li>))}
-                  </ul>
+                  <div className="acceptance-criteria">
+                    <h5>Acceptance Criteria:</h5>
+                    <ul>
+                      {w.project?.acceptance_criteria?.map((c, i) => (<li key={i}>{c}</li>))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             ))}
 
             <div className="edu-card">
-              <h3>Capstone: {plan.capstone?.title}</h3>
+              <div className="project-header">
+                <h3>Capstone: {plan.capstone?.title}</h3>
+                <button 
+                  className="start-project-btn capstone-btn"
+                  onClick={() => startProject(plan.capstone)}
+                >
+                  🎯 Start Capstone
+                </button>
+              </div>
               <p>{plan.capstone?.description}</p>
-              <ul>
-                {plan.capstone?.acceptance_criteria?.map((c, i) => (<li key={i}>{c}</li>))}
-              </ul>
+              <div className="acceptance-criteria">
+                <h5>Success Criteria:</h5>
+                <ul>
+                  {plan.capstone?.acceptance_criteria?.map((c, i) => (<li key={i}>{c}</li>))}
+                </ul>
+              </div>
             </div>
 
             <div className="form-actions">

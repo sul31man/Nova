@@ -104,6 +104,22 @@ def init_database():
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
+
+    # Learning plans table - stores user's saved learning plans
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS learning_plans (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            plan_data TEXT NOT NULL,
+            inputs TEXT NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            progress TEXT DEFAULT '{}',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
     
     conn.commit()
     conn.close()
@@ -389,6 +405,72 @@ class TaskDB:
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def get_user_sent_applications(user_id):
+        """Get applications sent by a specific user"""
+        conn = get_db_connection()
+        applications = conn.execute(
+            '''SELECT ta.*, t.title as task_title, t.description as task_description, 
+                      t.reward_credits, u.username as task_creator
+               FROM task_applications ta 
+               JOIN tasks t ON ta.task_id = t.id 
+               JOIN projects p ON t.project_id = p.id
+               JOIN users u ON p.user_id = u.id
+               WHERE ta.user_id = ? 
+               ORDER BY ta.created_at DESC''',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for app in applications:
+            result.append(dict(app))
+        return result
+
+    @staticmethod
+    def get_user_received_applications(user_id):
+        """Get applications received for tasks created by a specific user"""
+        conn = get_db_connection()
+        applications = conn.execute(
+            '''SELECT ta.*, t.title as task_title, t.description as task_description, 
+                      u.username as applicant_username
+               FROM task_applications ta 
+               JOIN tasks t ON ta.task_id = t.id 
+               JOIN projects p ON t.project_id = p.id
+               JOIN users u ON ta.user_id = u.id
+               WHERE p.user_id = ? 
+               ORDER BY ta.created_at DESC''',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for app in applications:
+            result.append(dict(app))
+        return result
+
+    @staticmethod
+    def get_application(application_id):
+        """Get a specific application by ID"""
+        conn = get_db_connection()
+        application = conn.execute(
+            'SELECT * FROM task_applications WHERE id = ?',
+            (application_id,)
+        ).fetchone()
+        conn.close()
+        return dict(application) if application else None
+
+    @staticmethod
+    def update_application_status(application_id, new_status):
+        """Update the status of an application"""
+        conn = get_db_connection()
+        conn.execute(
+            'UPDATE task_applications SET status = ? WHERE id = ?',
+            (new_status, application_id)
+        )
+        conn.commit()
+        conn.close()
+
 class UserDB:
     @staticmethod
     def hash_password(password):
@@ -537,6 +619,81 @@ class UserDB:
         conn.execute(
             'UPDATE users SET credits = credits + ? WHERE id = ?',
             (credits, user_id)
+        )
+        conn.commit()
+        conn.close()
+
+class LearningPlanDB:
+    @staticmethod
+    def save_plan(user_id, title, plan_data, inputs):
+        """Save a learning plan for a user"""
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            '''INSERT INTO learning_plans (user_id, title, plan_data, inputs) 
+               VALUES (?, ?, ?, ?)''',
+            (user_id, title, json.dumps(plan_data), json.dumps(inputs))
+        )
+        plan_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return plan_id
+
+    @staticmethod
+    def get_user_plans(user_id):
+        """Get all learning plans for a user"""
+        conn = get_db_connection()
+        plans = conn.execute(
+            'SELECT * FROM learning_plans WHERE user_id = ? ORDER BY created_at DESC',
+            (user_id,)
+        ).fetchall()
+        conn.close()
+        
+        result = []
+        for plan in plans:
+            plan_dict = dict(plan)
+            plan_dict['plan_data'] = json.loads(plan_dict['plan_data'])
+            plan_dict['inputs'] = json.loads(plan_dict['inputs'])
+            plan_dict['progress'] = json.loads(plan_dict['progress'])
+            result.append(plan_dict)
+        return result
+
+    @staticmethod
+    def get_plan(plan_id):
+        """Get a specific learning plan"""
+        conn = get_db_connection()
+        plan = conn.execute(
+            'SELECT * FROM learning_plans WHERE id = ?',
+            (plan_id,)
+        ).fetchone()
+        conn.close()
+        
+        if plan:
+            plan_dict = dict(plan)
+            plan_dict['plan_data'] = json.loads(plan_dict['plan_data'])
+            plan_dict['inputs'] = json.loads(plan_dict['inputs'])
+            plan_dict['progress'] = json.loads(plan_dict['progress'])
+            return plan_dict
+        return None
+
+    @staticmethod
+    def update_progress(plan_id, progress_data):
+        """Update progress for a learning plan"""
+        conn = get_db_connection()
+        conn.execute(
+            'UPDATE learning_plans SET progress = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+            (json.dumps(progress_data), plan_id)
+        )
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def delete_plan(plan_id, user_id):
+        """Delete a learning plan (only by owner)"""
+        conn = get_db_connection()
+        conn.execute(
+            'DELETE FROM learning_plans WHERE id = ? AND user_id = ?',
+            (plan_id, user_id)
         )
         conn.commit()
         conn.close()

@@ -372,5 +372,73 @@ class AITaskGenerator:
                 "capstone": {"title": "Capstone", "description": "Integrate everything.", "acceptance_criteria": ["Meets brief", "Deployed/demoable"]}
             }
 
+    def generate_chat_response(self, user_message: str, context: Dict) -> str:
+        """Generate contextual AI chat response for learning assistance"""
+        
+        # Extract context information
+        current_project = context.get('project', {})
+        current_step = context.get('current_step', '')
+        current_code = context.get('current_code', '')
+        file_name = context.get('file_name', '')
+        
+        # Build context-aware prompt
+        context_info = ""
+        if current_project:
+            context_info += f"Working on project: {current_project.get('title', 'Unknown')}\n"
+            context_info += f"Project description: {current_project.get('description', '')}\n"
+        
+        if current_step:
+            context_info += f"Current step: {current_step}\n"
+        
+        if current_code and len(current_code.strip()) > 0:
+            context_info += f"Current code in {file_name}:\n```\n{current_code[:500]}...\n```\n"
+        
+        prompt = f"""
+        You are a patient, encouraging AI tutor helping someone learn to code. 
+        
+        Context:
+        {context_info}
+        
+        User's question: "{user_message}"
+        
+        Guidelines:
+        - Be extremely beginner-friendly and encouraging
+        - Explain concepts simply, like you're talking to someone new to programming
+        - Give specific, actionable advice
+        - If they're stuck, provide a small hint or next step, not the full solution
+        - If they ask about errors, help them understand what went wrong
+        - Always be positive and supportive
+        - Keep responses concise but helpful (2-3 sentences max)
+        - Use simple language, avoid jargon
+        
+        Respond as a helpful tutor:
+        """
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You are a patient, encouraging coding tutor who explains things simply and keeps learners motivated."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=200
+            )
+            
+            return response.choices[0].message.content.strip()
+            
+        except Exception as e:
+            print(f"Error generating chat response: {e}")
+            # Friendly fallback responses
+            fallback_responses = [
+                "I'm here to help! Can you tell me more about what you're trying to do?",
+                "That's a great question! Let's break this down step by step.",
+                "Don't worry, coding can be tricky at first. What specific part is confusing?",
+                "You're doing great! Programming takes practice. What would you like to work on?",
+                "I'm having trouble right now, but keep going! You can also try the hint button for help."
+            ]
+            import random
+            return random.choice(fallback_responses)
+
 # Initialize the AI service
 ai_service = AITaskGenerator()

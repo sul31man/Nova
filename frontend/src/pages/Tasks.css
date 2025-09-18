@@ -454,3 +454,29 @@
     font-size: 2rem;
   }
 }
+
+/* Authentication Required Styles */
+.auth-required {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px solid #e0e0e0;
+  margin-top: 2rem;
+}
+
+.auth-required h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.auth-required p {
+  font-family: 'Space Mono', monospace;
+  color: #666;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}

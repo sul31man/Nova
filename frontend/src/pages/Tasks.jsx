@@ -1,7 +1,9 @@
 import React, { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import './Tasks.css'
 
 export default function Tasks() {
+  const { user, token } = useAuth()
   const [engineeringProblem, setEngineeringProblem] = useState('')
   const [projectId, setProjectId] = useState(null)
   const [currentQuestion, setCurrentQuestion] = useState(null)
@@ -15,6 +17,11 @@ export default function Tasks() {
   const handleProblemSubmit = async () => {
     if (!engineeringProblem.trim()) return
     
+    if (!user || !token) {
+      setError('You must be logged in to submit a problem.')
+      return
+    }
+    
     setIsProcessing(true)
     setError(null)
     
@@ -22,7 +29,8 @@ export default function Tasks() {
       const response = await fetch('/api/projects/create', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           description: engineeringProblem
@@ -49,6 +57,11 @@ export default function Tasks() {
   const handleAnswerSubmit = async (answer) => {
     if (!answer.trim() || !currentQuestion || !projectId) return
     
+    if (!user || !token) {
+      setError('You must be logged in to submit answers.')
+      return
+    }
+    
     setIsProcessing(true)
     setError(null)
     
@@ -56,7 +69,8 @@ export default function Tasks() {
       const response = await fetch(`/api/projects/${projectId}/answer`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           question_id: currentQuestion.id,
@@ -133,6 +147,24 @@ export default function Tasks() {
     setAnswers([])
     setGeneratedTasks([])
     setError(null)
+  }
+
+  if (!user) {
+    return (
+      <div className="tasks-container">
+        <div className="tasks-content">
+          <h1 className="tasks-title">Task Decomposition Engine</h1>
+          <p className="tasks-subtitle">
+            Transform complex engineering problems into actionable tasks through AI-guided analysis
+          </p>
+          <div className="auth-required">
+            <h3>Authentication Required</h3>
+            <p>You must be logged in to use the Task Decomposition Engine.</p>
+            <p>Please sign in or create an account to continue.</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

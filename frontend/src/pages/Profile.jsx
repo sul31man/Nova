@@ -1,12 +1,18 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import './Profile.css'
 
 export default function Profile() {
-  const { user, updateProfile } = useAuth()
+  const { user, token, updateProfile } = useAuth()
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [plansLoading, setPlansLoading] = useState(false)
+  const [plansError, setPlansError] = useState('')
+  const [learningPlans, setLearningPlans] = useState([])
+  const [applications, setApplications] = useState({ sent: [], received: [] })
+  const [appsLoading, setAppsLoading] = useState(false)
+  const [activeAppTab, setActiveAppTab] = useState('sent')
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     bio: user?.bio || '',
@@ -56,6 +62,76 @@ export default function Profile() {
     })
     setEditing(false)
     setMessage('')
+  }
+
+  // Fetch saved learning plans
+  useEffect(() => {
+    const fetchPlans = async () => {
+      if (!user || !token) return
+      setPlansLoading(true)
+      setPlansError('')
+      try {
+        const res = await fetch('/api/education/my-plans', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch learning plans')
+        setLearningPlans(data.plans || [])
+      } catch (e) {
+        setPlansError(e.message)
+      } finally {
+        setPlansLoading(false)
+      }
+    }
+    fetchPlans()
+
+    const fetchApplications = async () => {
+      if (!user || !token) return
+      setAppsLoading(true)
+      try {
+        const res = await fetch('/api/my-applications', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || 'Failed to fetch applications')
+        setApplications(data)
+      } catch (e) {
+        console.error('Error fetching applications:', e)
+      } finally {
+        setAppsLoading(false)
+      }
+    }
+    fetchApplications()
+  }, [user, token])
+
+  const handleApplicationAction = async (applicationId, action) => {
+    try {
+      const response = await fetch(`/api/applications/${applicationId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: action })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Refresh applications
+        const res = await fetch('/api/my-applications', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const appData = await res.json()
+        if (res.ok) setApplications(appData)
+        setMessage(`Application ${action} successfully!`)
+      } else {
+        setMessage(data.error || `Failed to ${action} application`)
+      }
+    } catch (error) {
+      console.error('Error updating application:', error)
+      setMessage(`Failed to ${action} application`)
+    }
   }
 
   const getInitials = (name) => {
@@ -231,6 +307,127 @@ export default function Profile() {
                     <span className="stat-label">Credits Earned</span>
                   </div>
                 </div>
+              </div>
+
+              <div className="profile-section">
+                <h3>Learning Plans</h3>
+                {plansLoading && <p>Loading your plans…</p>}
+                {plansError && <p style={{ color: '#dc2626' }}>{plansError}</p>}
+                {!plansLoading && !plansError && (
+                  learningPlans.length > 0 ? (
+                    <div className="plans-list">
+                      {learningPlans.map(plan => (
+                        <div key={plan.id} className="plan-card">
+                          <div className="plan-card-main">
+                            <div className="plan-title">{plan.title}</div>
+                            <div className="plan-meta">
+                              Saved on {new Date(plan.created_at).toLocaleDateString()} • {plan.plan_data?.summary?.duration_weeks || '?'} weeks
+                            </div>
+                          </div>
+                          <div className="plan-actions">
+                            <a className="plan-view-btn" href={`/education?plan=${plan.id}`}>View</a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-skills">No learning plans saved yet. Generate a plan in Education and click "Save Plan".</p>
+                  )
+                )}
+              </div>
+
+              {/* Applications Section */}
+              <div className="profile-section">
+                <h3>Task Applications</h3>
+                {appsLoading ? (
+                  <p>Loading applications...</p>
+                ) : (
+                  <div className="applications-tabs">
+                    <div className="tab-nav">
+                      <button 
+                        className={`tab-btn ${activeAppTab === 'sent' ? 'active' : ''}`}
+                        onClick={() => setActiveAppTab('sent')}
+                      >
+                        Sent ({applications.sent?.length || 0})
+                      </button>
+                      <button 
+                        className={`tab-btn ${activeAppTab === 'received' ? 'active' : ''}`}
+                        onClick={() => setActiveAppTab('received')}
+                      >
+                        Received ({applications.received?.length || 0})
+                      </button>
+                    </div>
+                    
+                    <div className="tab-content">
+                      {/* Sent Applications */}
+                      {activeAppTab === 'sent' && (
+                        <div className="tab-panel">
+                          {applications.sent?.length > 0 ? (
+                            <div className="applications-list">
+                              {applications.sent.map(app => (
+                                <div key={app.id} className="application-card">
+                                  <div className="app-header">
+                                    <h4>{app.task_title}</h4>
+                                    <span className={`status-badge ${app.status}`}>{app.status}</span>
+                                  </div>
+                                  <p className="app-message">"{app.application_message}"</p>
+                                  <div className="app-meta">
+                                    <span>To: {app.task_creator}</span>
+                                    <span>Applied: {new Date(app.created_at).toLocaleDateString()}</span>
+                                    <span>Credits: {app.reward_credits}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="no-applications">No applications sent yet.</p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Received Applications */}
+                      {activeAppTab === 'received' && (
+                        <div className="tab-panel">
+                          {applications.received?.length > 0 ? (
+                            <div className="applications-list">
+                              {applications.received.map(app => (
+                                <div key={app.id} className="application-card">
+                                  <div className="app-header">
+                                    <h4>{app.task_title}</h4>
+                                    <span className={`status-badge ${app.status}`}>{app.status}</span>
+                                  </div>
+                                  <p className="app-message">"{app.application_message}"</p>
+                                  <div className="app-meta">
+                                    <span>From: {app.applicant_username}</span>
+                                    <span>Applied: {new Date(app.created_at).toLocaleDateString()}</span>
+                                  </div>
+                                  {app.status === 'pending' && (
+                                    <div className="app-actions">
+                                      <button 
+                                        className="btn-accept"
+                                        onClick={() => handleApplicationAction(app.id, 'accepted')}
+                                      >
+                                        Accept
+                                      </button>
+                                      <button 
+                                        className="btn-reject"
+                                        onClick={() => handleApplicationAction(app.id, 'rejected')}
+                                      >
+                                        Reject
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="no-applications">No applications received yet.</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

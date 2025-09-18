@@ -1,0 +1,432 @@
+/* Project IDE Styles */
+.ide-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-height: 90vh;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  font-family: 'JetBrains Mono', monospace;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+.ide-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #666;
+  text-align: center;
+}
+
+.ide-placeholder h3 {
+  margin: 0 0 1rem 0;
+  color: #999;
+}
+
+/* Header */
+.ide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+}
+
+.ide-title h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+.step-counter {
+  font-size: 0.8rem;
+  color: #888;
+  margin-left: 1rem;
+}
+
+.ide-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.run-btn {
+  background: #4ade80;
+  color: #000;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.run-btn:hover:not(:disabled) {
+  background: #22c55e;
+  transform: translateY(-1px);
+}
+
+.run-btn:disabled {
+  background: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Body Layout */
+.ide-body {
+  display: grid;
+  grid-template-columns: 200px 1fr 300px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Sidebar (File Explorer) */
+.ide-sidebar {
+  background: #2a2a2a;
+  border-right: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.sidebar-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.new-file-btn {
+  background: #333;
+  color: #ccc;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-file-btn:hover {
+  background: #444;
+  color: #fff;
+}
+
+.file-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #333;
+  transition: background 0.2s ease;
+}
+
+.file-item:hover {
+  background: #333;
+}
+
+.file-item.active {
+  background: #444;
+  border-left: 3px solid #4ade80;
+}
+
+.file-name {
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.delete-file-btn {
+  background: none;
+  color: #666;
+  border: none;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-file-btn:hover {
+  color: #ef4444;
+}
+
+/* Editor */
+.ide-editor {
+  display: flex;
+  flex-direction: column;
+  background: #1a1a1a;
+}
+
+.editor-header {
+  padding: 0.75rem;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+}
+
+.editor-filename {
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.code-editor {
+  flex: 1;
+  padding: 1rem;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: none;
+  outline: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: none;
+  tab-size: 2;
+}
+
+.code-editor::placeholder {
+  color: #666;
+}
+
+/* Guide Panel */
+.ide-guide {
+  background: #2a2a2a;
+  border-left: 1px solid #333;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.guide-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.guide-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.hint-btn {
+  background: #444;
+  color: #fbbf24;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.hint-btn:hover {
+  background: #555;
+}
+
+.current-step {
+  padding: 1rem;
+  flex: 1;
+}
+
+.step-indicator {
+  margin-bottom: 0.75rem;
+}
+
+.step-status {
+  font-size: 1.5rem;
+}
+
+.step-status.completed {
+  color: #4ade80;
+}
+
+.step-content h5 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.step-content p {
+  margin: 0 0 1rem 0;
+  line-height: 1.5;
+  color: #e0e0e0;
+}
+
+.hint-box {
+  background: #333;
+  border-left: 3px solid #fbbf24;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+.hint-box h6 {
+  margin: 0 0 0.5rem 0;
+  color: #fbbf24;
+  font-size: 0.8rem;
+}
+
+.hint-box p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.step-navigation {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.step-nav-btn {
+  flex: 1;
+  background: #333;
+  color: #ccc;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.step-nav-btn:hover:not(:disabled) {
+  background: #444;
+  color: #fff;
+}
+
+.step-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.progress-bar {
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.3s ease;
+}
+
+/* Output Panel */
+.ide-output {
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+}
+
+.output-header {
+  padding: 0.5rem 1rem;
+  background: #2a2a2a;
+  border-bottom: 1px solid #333;
+}
+
+.output-header h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.output-content {
+  flex: 1;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+.output-content pre {
+  margin: 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #e0e0e0;
+  white-space: pre-wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .ide-body {
+    grid-template-columns: 180px 1fr 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ide-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  
+  .ide-sidebar {
+    max-height: 150px;
+  }
+  
+  .ide-guide {
+    display: none; /* Hide guide on mobile, focus on code */
+  }
+}
+
+/* Scrollbar Styling */
+.ide-sidebar::-webkit-scrollbar,
+.ide-guide::-webkit-scrollbar,
+.output-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ide-sidebar::-webkit-scrollbar-track,
+.ide-guide::-webkit-scrollbar-track,
+.output-content::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+.ide-sidebar::-webkit-scrollbar-thumb,
+.ide-guide::-webkit-scrollbar-thumb,
+.output-content::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+.ide-sidebar::-webkit-scrollbar-thumb:hover,
+.ide-guide::-webkit-scrollbar-thumb:hover,
+.output-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
