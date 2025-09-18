@@ -8,6 +8,18 @@ import Education from './pages/Education.jsx'
 
 export default function App() {
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false)
+  
+  // Handle click outside to close dropdown
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('[data-dropdown]')) {
+        setHomeDropdownOpen(false)
+      }
+    }
+    
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [])
 
   const linkStyle = ({ isActive }) => ({
     padding: '0.5rem 1rem',
@@ -56,7 +68,7 @@ export default function App() {
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
         <div style={{ fontFamily: 'JetBrains Mono, Space Mono, Courier New, monospace', fontWeight: 600, fontSize: '1.5rem', color: '#000', letterSpacing: '2px' }}>NOVA</div>
         <nav style={{ display: 'flex', gap: '2rem' }}>
-          <div style={dropdownStyle}>
+          <div style={dropdownStyle} data-dropdown>
             <button 
               style={{
                 ...linkStyle({ isActive: window.location.pathname === '/' || window.location.pathname === '/manifesto' }),
@@ -65,7 +77,6 @@ export default function App() {
                 cursor: 'pointer'
               }}
               onClick={() => setHomeDropdownOpen(!homeDropdownOpen)}
-              onBlur={() => setTimeout(() => setHomeDropdownOpen(false), 150)}
             >
               Home ▾
             </button>
@@ -75,6 +86,7 @@ export default function App() {
                 style={dropdownLinkStyle}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
               >
                 Landing
               </NavLink>
@@ -83,6 +95,7 @@ export default function App() {
                 style={dropdownLinkStyle}
                 onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
                 onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
               >
                 Manifesto
               </NavLink>
