@@ -12,6 +12,7 @@ import MyTasks from './pages/MyTasks.jsx'
 import Workspace from './pages/Workspace.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
+import logo from './my_images/logo.png'
 
 const AppContent = () => {
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false)
@@ -94,16 +95,20 @@ const AppContent = () => {
 
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '1rem' }}>
-        <div style={{ fontFamily: 'JetBrains Mono, Space Mono, Courier New, monospace', fontWeight: 600, fontSize: '1.5rem', color: '#000', letterSpacing: '2px' }}>NOVA</div>
-        <nav style={{ display: 'flex', gap: '2rem' }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1 }}>
+        <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', lineHeight: 1, paddingTop: '1px' }}>
+          <img src={logo} alt="Nova logo" style={{ height: 26, width: 26, objectFit: 'contain', display: 'block' }} />
+          <span style={{ fontFamily: 'JetBrains Mono, Space Mono, Courier New, monospace', fontWeight: 700, fontSize: '1.05rem', color: '#000', letterSpacing: '0.5px', lineHeight: 1, position: 'relative', top: '-1px' }}>Nova</span>
+        </NavLink>
+        <nav style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', lineHeight: 3 }}>
           <div style={dropdownStyle} data-dropdown>
             <button 
               style={{
                 ...linkStyle({ isActive: window.location.pathname === '/' || window.location.pathname === '/manifesto' }),
                 background: 'none',
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                lineHeight: 1
               }}
               onClick={() => setHomeDropdownOpen(!homeDropdownOpen)}
             >
@@ -136,7 +141,7 @@ const AppContent = () => {
           <NavLink to="/education" style={linkStyle}>Education</NavLink>
           
           {/* Authentication Section */}
-          <div style={{ marginLeft: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', lineHeight: 1 }}>
             {user ? (
               <UserProfile />
             ) : (

@@ -128,7 +128,7 @@ export default function Education() {
         
         <div className="beginner-help">
           <div className="help-card">
-            <h4>📚 How it works:</h4>
+            <h4> How it works:</h4>
             <ol>
               <li><strong>Tell us your interests</strong> - What excites you? AI, web development, robotics?</li>
               <li><strong>Set your timeline</strong> - How fast do you want to learn?</li>

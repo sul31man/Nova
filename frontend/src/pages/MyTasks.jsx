@@ -244,7 +244,11 @@ export default function MyTasks() {
                               Mark Complete
                             </button>
                           )}
-                          <a className="action-btn secondary" href={`/workspace/${task.id}`}>Open Workspace</a>
+                          {task.application_status === 'accepted' ? (
+                            <a className="action-btn secondary" href={`/workspace/${task.id}`}>Open Workspace</a>
+                          ) : (
+                            <button className="action-btn secondary" disabled title="Awaiting acceptance">Open Workspace</button>
+                          )}
                         </>
                       )}
 
@@ -256,6 +260,7 @@ export default function MyTasks() {
                         <>
                           <button className="action-btn secondary">View Applicants</button>
                           <button className="action-btn secondary">Edit Task</button>
+                          <a className="action-btn secondary" href={`/workspace/${task.id}`}>Open Workspace</a>
                         </>
                       )}
                     </div>

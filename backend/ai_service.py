@@ -440,5 +440,85 @@ class AITaskGenerator:
             import random
             return random.choice(fallback_responses)
 
+    def generate_character_report(self, profile: Dict, inputs: Dict) -> Dict:
+        """Generate a concise character/skills report to help pairing.
+
+        profile: current user profile stored in DB (username, full_name, bio, skills, etc.)
+        inputs: additional free-text + survey answers from the UI
+        """
+        # Compose a compact context
+        summary = {
+            'name': profile.get('full_name') or profile.get('username'),
+            'bio': profile.get('bio', ''),
+            'skills': profile.get('skills', []),
+            'credits': profile.get('credits', 0),
+        }
+        # Normalize inputs
+        free_text = inputs.get('about', '')
+        interests = inputs.get('interests', '')
+        years_experience = inputs.get('years_experience', '')
+        preferred_roles = inputs.get('preferred_roles', '')
+        notable_projects = inputs.get('projects', '')
+
+        prompt = f"""
+        You are matching learners and contributors to the best projects, peers and study tracks.
+        Given this profile and answers, produce a concise JSON report with:
+        - strengths: 4-6 short bullet strings
+        - growth_areas: 3-5 short bullet strings
+        - technical_profile: {{ primary_stack: [str], secondary_stack: [str], seniority: one of ['junior','mid','senior'] }}
+        - interests: [str]
+        - estimated_age_bracket: one of ['<18','18-24','25-34','35-44','45+','unknown'] (do not guess if unclear)
+        - character_traits: [str] (e.g., 'analytical', 'collaborative', 'self-directed')
+        - pairing_recommendations: {{ education: [str], tasks: [str], teammates: [str] }}
+        - confidence: number 0-1 representing confidence in the assessment
+
+        Profile:
+        {json.dumps(summary, ensure_ascii=False)}
+
+        Answers:
+        about: {free_text}
+        interests: {interests}
+        years_experience: {years_experience}
+        preferred_roles: {preferred_roles}
+        projects: {notable_projects}
+
+        Return ONLY valid JSON matching the schema.
+        """
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "You create pragmatic, compact talent snapshots for team formation and learning paths."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.5,
+                max_tokens=900
+            )
+            raw = response.choices[0].message.content.strip()
+            return json.loads(raw)
+        except Exception as e:
+            print(f"Error generating character report: {e}")
+            # Fallback lightweight report
+            skills = summary.get('skills') or []
+            return {
+                "strengths": skills[:5] or ["Curious", "Self-starter"],
+                "growth_areas": ["Structured problem decomposition", "Testing discipline"],
+                "technical_profile": {
+                    "primary_stack": skills[:3],
+                    "secondary_stack": skills[3:6],
+                    "seniority": "junior"
+                },
+                "interests": [w.strip() for w in interests.split(',') if w.strip()] or [],
+                "estimated_age_bracket": "unknown",
+                "character_traits": ["collaborative", "analytical"],
+                "pairing_recommendations": {
+                    "education": ["Project-led learning with weekly checkpoints"],
+                    "tasks": ["Well-scoped beginner/intermediate issues"],
+                    "teammates": ["Pair with a mid/senior mentor"]
+                },
+                "confidence": 0.35
+            }
+
 # Initialize the AI service
 ai_service = AITaskGenerator()

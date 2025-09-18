@@ -415,9 +415,17 @@
   overflow: hidden;
   /* Uses local image; replace path if moved */
   background-image: url('../my_images/image.png');
-  background-size: cover;
-  background-position: center;
+  /* Show the entire image without cropping */
+  background-size: contain;
+  background-position: center center;
   background-repeat: no-repeat;
+  /* Add a neutral background behind letterboxing areas */
+  background-color: #000;
+}
+
+/* Variant for second banner using the other image */
+.image-banner--secondary {
+  background-image: url('../my_images/image2.png');
 }
 
 .image-banner__overlay {
@@ -459,12 +467,33 @@
   font-style: italic;
 }
 
+/* Layout alignment: place content left by default */
+.image-banner {
+  justify-content: flex-start;
+}
+.image-banner .image-banner__content {
+  max-width: 680px;
+  padding-left: 6vw;
+  padding-right: 6vw;
+}
+
+/* Second banner: align content to the right */
+.image-banner--secondary {
+  justify-content: flex-end;
+}
+.image-banner--secondary .image-banner__content {
+  text-align: right;
+}
+
 @media (max-width: 768px) {
   .image-banner {
-    min-height: 55vh;
+    /* Slightly taller to reduce letterboxing on narrow screens */
+    min-height: 65vh;
+    justify-content: center; /* center on small screens for readability */
   }
   .image-banner__content {
     padding: 2rem 1.25rem;
+    text-align: center;
   }
 }
 

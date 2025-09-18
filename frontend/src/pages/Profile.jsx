@@ -13,6 +13,10 @@ export default function Profile() {
   const [applications, setApplications] = useState({ sent: [], received: [] })
   const [appsLoading, setAppsLoading] = useState(false)
   const [activeAppTab, setActiveAppTab] = useState('sent')
+  // Character report
+  const [reportInputs, setReportInputs] = useState({ about: '', interests: '', years_experience: '', preferred_roles: '', projects: '' })
+  const [reportLoading, setReportLoading] = useState(false)
+  const [characterReport, setCharacterReport] = useState(null)
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     bio: user?.bio || '',
@@ -34,6 +38,30 @@ export default function Profile() {
       ...formData,
       skills: skillsArray
     })
+  }
+
+  const handleReportInput = (e) => {
+    const { name, value } = e.target
+    setReportInputs(prev => ({ ...prev, [name]: value }))
+  }
+
+  const generateCharacterReport = async () => {
+    if (!token) return
+    setReportLoading(true)
+    try {
+      const res = await fetch('/api/profile/character-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(reportInputs)
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to generate character report')
+      setCharacterReport(data)
+    } catch (e) {
+      setMessage(e.message)
+    } finally {
+      setReportLoading(false)
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -333,6 +361,86 @@ export default function Profile() {
                   ) : (
                     <p className="no-skills">No learning plans saved yet. Generate a plan in Education and click "Save Plan".</p>
                   )
+                )}
+              </div>
+
+              {/* Character Report Section */}
+              <div className="profile-section">
+                <h3>Character Report</h3>
+                <p className="profile-bio" style={{ marginBottom: '1rem' }}>
+                  Generate a concise snapshot of your technical profile, interests, and collaboration style to help Nova pair you with the right education, tasks, and teammates.
+                </p>
+                <div className="profile-form" style={{ padding: '1rem', marginTop: '0.5rem' }}>
+                  <div className="form-field">
+                    <label htmlFor="about">About you</label>
+                    <textarea id="about" name="about" rows="3" placeholder="Share background, goals, what you enjoy working on" value={reportInputs.about} onChange={handleReportInput} />
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="interests">Interests</label>
+                    <input id="interests" name="interests" placeholder="e.g., AI safety, web apps, robotics" value={reportInputs.interests} onChange={handleReportInput} />
+                  </div>
+                  <div className="form-field" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label htmlFor="years_experience">Years of experience</label>
+                      <input id="years_experience" name="years_experience" placeholder="e.g., 0-1, 2-4, 5+" value={reportInputs.years_experience} onChange={handleReportInput} />
+                    </div>
+                    <div>
+                      <label htmlFor="preferred_roles">Preferred roles</label>
+                      <input id="preferred_roles" name="preferred_roles" placeholder="e.g., frontend, data, product" value={reportInputs.preferred_roles} onChange={handleReportInput} />
+                    </div>
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="projects">Notable projects</label>
+                    <input id="projects" name="projects" placeholder="Links or short notes (optional)" value={reportInputs.projects} onChange={handleReportInput} />
+                  </div>
+                  <div className="form-actions" style={{ justifyContent: 'flex-start' }}>
+                    <button className="save-btn" type="button" onClick={generateCharacterReport} disabled={reportLoading}>
+                      {reportLoading ? 'Generating…' : 'Generate Character Report'}
+                    </button>
+                  </div>
+                </div>
+
+                {characterReport && (
+                  <div className="plan-card" style={{ marginTop: '1rem' }}>
+                    <div className="plan-card-main">
+                      <div className="plan-title">Your Character Snapshot</div>
+                      <div className="plan-meta">Confidence: {(characterReport.confidence * 100).toFixed(0)}%</div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+                      <div>
+                        <strong>Strengths</strong>
+                        <ul>
+                          {(characterReport.strengths || []).map((s, i) => (<li key={i}>{s}</li>))}
+                        </ul>
+                      </div>
+                      <div>
+                        <strong>Growth Areas</strong>
+                        <ul>
+                          {(characterReport.growth_areas || []).map((s, i) => (<li key={i}>{s}</li>))}
+                        </ul>
+                      </div>
+                      <div>
+                        <strong>Technical Profile</strong>
+                        <p style={{ margin: 0 }}>Primary: {(characterReport.technical_profile?.primary_stack || []).join(', ') || '—'}</p>
+                        <p style={{ margin: 0 }}>Secondary: {(characterReport.technical_profile?.secondary_stack || []).join(', ') || '—'}</p>
+                        <p style={{ margin: 0 }}>Seniority: {characterReport.technical_profile?.seniority || '—'}</p>
+                      </div>
+                      <div>
+                        <strong>Traits & Interests</strong>
+                        <p style={{ margin: 0 }}>Traits: {(characterReport.character_traits || []).join(', ') || '—'}</p>
+                        <p style={{ margin: 0 }}>Interests: {(characterReport.interests || []).join(', ') || '—'}</p>
+                        <p style={{ margin: 0 }}>Age: {characterReport.estimated_age_bracket || '—'}</p>
+                      </div>
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <strong>Pairing Recommendations</strong>
+                        <ul>
+                          {(characterReport.pairing_recommendations?.education || []).map((s, i) => (<li key={i}>Education: {s}</li>))}
+                          {(characterReport.pairing_recommendations?.tasks || []).map((s, i) => (<li key={i}>Tasks: {s}</li>))}
+                          {(characterReport.pairing_recommendations?.teammates || []).map((s, i) => (<li key={i}>Teammates: {s}</li>))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
 

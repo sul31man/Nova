@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB, UserDB, LearningPlanDB
+from database import init_database, ProjectDB, QuestionDB, AnswerDB, TaskDB, UserDB, LearningPlanDB, EnvTemplateDB
 from ai_service import ai_service
 import traceback
 import os
@@ -50,6 +50,19 @@ def token_required(f):
 @app.get("/api/hello")
 def hello():
     return jsonify(message="Hello from Nova API!")
+
+# Character report for profile
+@app.post("/api/profile/character-report")
+@token_required
+def character_report(current_user):
+    try:
+        payload = request.get_json() or {}
+        report = ai_service.generate_character_report(current_user, payload)
+        return jsonify(report)
+    except Exception as e:
+        print(f"Character report error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to generate character report"), 500
 
 # Authentication endpoints
 @app.post("/api/auth/register")
@@ -642,10 +655,6 @@ def update_application_status(current_user, application_id):
         traceback.print_exc()
         return jsonify(error="Failed to update application status"), 500
 
-if __name__ == "__main__":
-    # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)
-    app.run(host="127.0.0.1", port=5001, debug=True)
-
 """
 Lightweight Workspace API (MVP)
 Creates a transient workspace config for a task with an AI-inspired
@@ -688,10 +697,33 @@ def select_env_template(task):
         'evaluate': {'command': 'npm test'}
     }
 
+@app.get("/api/env-templates")
+def list_env_templates():
+    try:
+        category = request.args.get('category')
+        templates = EnvTemplateDB.list_templates(category)
+        return jsonify(templates=templates)
+    except Exception as e:
+        print(f"List env templates error: {e}")
+        return jsonify(error="Failed to list templates"), 500
+
+@app.get("/api/env-templates/<int:template_id>")
+def get_env_template(template_id):
+    try:
+        tpl = EnvTemplateDB.get_template(template_id)
+        if not tpl:
+            return jsonify(error="Template not found"), 404
+        return jsonify(template=tpl)
+    except Exception as e:
+        print(f"Get env template error: {e}")
+        return jsonify(error="Failed to get template"), 500
+
 @app.post("/api/tasks/<int:task_id>/workspace")
 @token_required
 def create_workspace(current_user, task_id):
-    """Return a transient workspace config for the task (no persistence)."""
+    """Return a transient workspace config for the task (no persistence).
+    Accepts optional JSON: { template_id, category, tier } to choose preset.
+    """
     try:
         task = TaskDB.get_task(task_id)
         if not task:
@@ -704,16 +736,29 @@ def create_workspace(current_user, task_id):
         if not (is_assignee or is_owner):
             return jsonify(error="Unauthorized to open workspace"), 403
 
-        template = select_env_template(task)
+        body = request.get_json(silent=True) or {}
+
+        template = None
+        # Priority: explicit template_id -> category+tier -> selector fallback
+        if 'template_id' in body:
+            template = EnvTemplateDB.get_template(body['template_id'])
+        elif body.get('category') and body.get('tier'):
+            template = EnvTemplateDB.get_by_category_and_tier(body['category'], body['tier'])
+        if not template:
+            # Fallback to default software:medium or rule-based
+            template = EnvTemplateDB.get_by_category_and_tier('software', 'medium')
+            if not template:
+                template = select_env_template(task)
         workspace_id = f"ws-{task_id}-{int(time.time())}"
         return jsonify({
             'workspace': {
                 'id': workspace_id,
                 'task_id': task_id,
-                'template': template['id'],
+                'template': template.get('id', template.get('id', 'inline')),
+                'name': template.get('name', template.get('id', 'inline')),
                 'runtime': template['runtime'],
                 'deps': template['deps'],
-                'evaluate': template['evaluate']
+                'evaluate': template.get('eval_config') or template.get('evaluate')
             },
             'files': template['scaffold']
         })
@@ -721,3 +766,7 @@ def create_workspace(current_user, task_id):
         print(f"Create workspace error: {e}")
         traceback.print_exc()
         return jsonify(error="Failed to create workspace"), 500
+
+if __name__ == "__main__":
+    # Default dev server on http://127.0.0.1:5001 (avoiding AirPlay conflict on 5000)
+    app.run(host="127.0.0.1", port=5001, debug=True)

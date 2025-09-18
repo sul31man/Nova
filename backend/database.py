@@ -120,10 +120,53 @@ def init_database():
             FOREIGN KEY (user_id) REFERENCES users (id)
         )
     ''')
+
+    # Environment templates - pre-saved development environments
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS env_templates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT NOT NULL, -- e.g., software, hardware, logistics
+            tier TEXT NOT NULL,     -- low, medium, high
+            runtime TEXT NOT NULL,  -- e.g., python3.11, node18
+            deps TEXT NOT NULL,     -- JSON array
+            scaffold TEXT NOT NULL, -- JSON map path->content
+            eval_config TEXT NOT NULL, -- JSON, e.g., {command}
+            ui_config TEXT DEFAULT '{}', -- JSON for frontend hints
+            version TEXT DEFAULT '1.0.0',
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
     
     conn.commit()
-    conn.close()
-    print("Database initialized successfully!")
+    
+    # Seed software templates if table is empty
+    try:
+        existing = cursor.execute('SELECT COUNT(1) as c FROM env_templates').fetchone()
+        count = existing['c'] if existing else 0
+        if count == 0:
+            templates = EnvTemplateDB.default_software_templates()
+            for tpl in templates:
+                cursor.execute(
+                    '''INSERT INTO env_templates
+                       (name, category, tier, runtime, deps, scaffold, eval_config, ui_config, version, status)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (
+                        tpl['name'], tpl['category'], tpl['tier'], tpl['runtime'],
+                        json.dumps(tpl['deps']), json.dumps(tpl['scaffold']),
+                        json.dumps(tpl['eval_config']), json.dumps(tpl.get('ui_config', {})),
+                        tpl.get('version', '1.0.0'), tpl.get('status', 'active')
+                    )
+                )
+            conn.commit()
+            print('Seeded default software environment templates')
+    except Exception as e:
+        print(f"Template seeding skipped due to error: {e}")
+    finally:
+        conn.close()
+        print("Database initialized successfully!")
 
 def get_db_connection():
     """Get a database connection"""
@@ -697,6 +740,106 @@ class LearningPlanDB:
         )
         conn.commit()
         conn.close()
+
+class EnvTemplateDB:
+    @staticmethod
+    def default_software_templates():
+        """Return three software templates (low/medium/high abstraction)."""
+        return [
+            {
+                'name': 'Software • Python • Low Abstraction',
+                'category': 'software',
+                'tier': 'low',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': '# Low abstraction\nImplement from scratch. Run tests with: pytest -q',
+                    'main.py': 'def solve(x):\n    # implement\n    raise NotImplementedError\n',
+                    'test_main.py': 'import pytest\nfrom main import solve\n\n@pytest.mark.parametrize("x", [0,1,2,42])\ndef test_identity(x):\n    assert solve(x) == x\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs'], 'default_open': 'editor'},
+                'version': '1.0.0',
+                'status': 'active'
+            },
+            {
+                'name': 'Software • Python • Medium Abstraction',
+                'category': 'software',
+                'tier': 'medium',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': '# Medium abstraction\nComplete functions per spec. Run tests with: pytest -q',
+                    'main.py': '"""Implement solve to satisfy tests.\nArgs: x (Any) -> Any\n"""\n\ndef solve(x):\n    return x\n',
+                    'test_main.py': 'from main import solve\n\ndef test_identity():\n    assert solve(42) == 42\n\ndef test_string():\n    assert solve("nova") == "nova"\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','tests','logs'], 'default_open': 'tests'},
+                'version': '1.0.0',
+                'status': 'active'
+            },
+            {
+                'name': 'Software • Python • High Abstraction',
+                'category': 'software',
+                'tier': 'high',
+                'runtime': 'python3.11',
+                'deps': ['pytest'],
+                'scaffold': {
+                    'README.md': '# High abstraction\nFollow the checklist and prompts below to implement the solution.\n- Step 1: Read tests\n- Step 2: Sketch solution\n- Step 3: Implement\n- Step 4: Refactor\n- Step 5: Pass tests',
+                    'prompts.md': 'Goal: Implement solve(x) per tests.\nHints: start simple, keep pure, add types later.',
+                    'main.py': 'def solve(x):\n    """Return input unchanged. Replace with task-specific logic."""\n    return x\n',
+                    'test_main.py': 'from main import solve\n\ndef test_sample():\n    assert solve(1) == 1\n'
+                },
+                'eval_config': {'command': 'pytest -q'},
+                'ui_config': {'panes': ['editor','ai','tests','logs'], 'default_open': 'ai'},
+                'version': '1.0.0',
+                'status': 'active'
+            }
+        ]
+
+    @staticmethod
+    def list_templates(category=None):
+        conn = get_db_connection()
+        if category:
+            rows = conn.execute(
+                'SELECT * FROM env_templates WHERE category = ? AND status = "active" ORDER BY tier',
+                (category,)
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                'SELECT * FROM env_templates WHERE status = "active" ORDER BY category, tier'
+            ).fetchall()
+        conn.close()
+        return [EnvTemplateDB._row_to_dict(r) for r in rows]
+
+    @staticmethod
+    def get_template(template_id):
+        conn = get_db_connection()
+        row = conn.execute('SELECT * FROM env_templates WHERE id = ?', (template_id,)).fetchone()
+        conn.close()
+        return EnvTemplateDB._row_to_dict(row) if row else None
+
+    @staticmethod
+    def get_by_category_and_tier(category, tier):
+        conn = get_db_connection()
+        row = conn.execute(
+            'SELECT * FROM env_templates WHERE category = ? AND tier = ? AND status = "active"',
+            (category, tier)
+        ).fetchone()
+        conn.close()
+        return EnvTemplateDB._row_to_dict(row) if row else None
+
+    @staticmethod
+    def _row_to_dict(row):
+        if not row:
+            return None
+        d = dict(row)
+        for key in ['deps', 'scaffold', 'eval_config', 'ui_config']:
+            try:
+                d[key] = json.loads(d[key]) if d.get(key) else ([] if key == 'deps' else {})
+            except Exception:
+                pass
+        return d
 
 if __name__ == "__main__":
     init_database()

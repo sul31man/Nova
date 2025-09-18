@@ -316,6 +316,16 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Second Image + Text Section (no animation) */}
+      <section className="image-banner image-banner--secondary" role="region" aria-label="Showcase 2">
+        <div className="image-banner__overlay" aria-hidden="true" />
+        <div className="image-banner__content">
+          <h2 className="image-banner__title">Giving the people ownership over our future</h2>
+          <p className="image-banner__subtitle">Grouping people together more efficiently than ever before</p>
+          <p className="image-banner__subtitle">Learning has never been faster and easier</p>
+        </div>
+      </section>
     </div>
   )
 }
