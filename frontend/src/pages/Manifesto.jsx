@@ -10,44 +10,91 @@ export default function Manifesto() {
           Making the most of the biological distributed network
         </p>
 
+        <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+
         <section className="product-section">
-          <h2 className="section-title">What is Nova?</h2>
-          <p className="product-description" style={{ fontWeight: 'bold', marginBottom: '1rem', color: '#000' }}>MANIFESTO:</p>
+          <h2 className="section-title">1. The Broken Present</h2>
           
-          <p className="product-description">The future is one where we have <span className="highlight">democratised engineering</span> — where everybody is building.</p>
+          <p className="product-description">Traditional education no longer guarantees employment.</p>
+          
+          <p className="product-description">STEM students grind on assignments that don't matter, and graduates face a wall of gatekeepers.</p>
+          
+          <p className="product-description">Humans are left underutilised — waiting for permission to start their careers.</p>
+          
+          <p className="product-description">Meanwhile, corporations monopolise creation. Opportunities are centralised. Innovation is locked away.</p>
+          
+          <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+        </section>
+
+        <section className="product-section">
+          <h2 className="section-title">2. The New Paradigm</h2>
+          
+          <p className="product-description"><span className="highlight">Nova is the alternative.</span></p>
+          
+          <p className="product-description">We are entering the age of democratised engineering — where everybody builds.</p>
           
           <p className="product-description">This is the new school. This is the new university.</p>
           
-          <p className="product-description">Education will be renovated: the barrier to entry collapses, and we all learn new skills on demand to contribute to society.</p>
+          <p className="product-description">Work is no longer a CV and an interview. It is a mission.</p>
+          
+          <p className="product-description">Every task is decomposed, scaffolded, validated, and rewarded.</p>
+          
+          <p className="product-description">With Nova, you don't wait. You <span className="highlight">sign up to a mission, deliver, and get paid instantly.</span></p>
+          
+          <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+        </section>
+
+        <section className="product-section">
+          <h2 className="section-title">3. How It Works</h2>
+          
+          <ul className="product-description">
+            <li><span className="code-accent">AI decomposes work into thousands of tasks.</span></li>
+            <li>Operator Nodes pick up missions, guided by the Morphic IDE.</li>
+            <li>The Cluster Scheduler matches, teaches, and levels up each node.</li>
+            <li>Swarms of nodes collaborate on projects, outputs are validated, and progress compounds.</li>
+          </ul>
+          
+          <p className="product-description">The Cluster doesn't just give you tasks — it <span className="highlight">curates your entire journey.</span></p>
+          
+          <p className="product-description">You are always learning, always building, always earning.</p>
+          
+          <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+        </section>
+
+        <section className="product-section">
+          <h2 className="section-title">4. The Human Purpose</h2>
           
           <p className="product-description">Humans are not to be replaced by AI. <span className="code-accent">AI is not here to replace humans.</span></p>
           
           <p className="product-description">Instead, humans will be <span className="highlight">more employed than ever before</span> — constantly activated, never idle.</p>
           
-          <p className="product-description">Without purpose and work, humans decay. This system offers more purpose than humanity has ever known.</p>
+          <p className="product-description">The Cluster Scheduler exists for one purpose: to keep you in motion — guiding you from one mission to the next, levelling you up at every step.</p>
           
-          <p className="product-description">The AI–human coexistence will supercharge every individual, turning us into the <span className="highlight">most capable versions of ourselves.</span></p>
+          <p className="product-description">It matches you with the right missions, fills your knowledge gaps, adapts the Morphic IDE around you, and levels you up step by step.</p>
           
-          <p className="product-description">The paradigm will invert: today, humans build distributed machines; tomorrow, <span className="code-accent">ASI will maximise the biological distributed network</span>, scheduling and managing us into the most successful compute cluster in history.</p>
+          <p className="product-description">Nova pushes you to become the best engineer you can be — rewarded at every step, guided by the optimal project sequence, until you stand as a <span className="highlight">10x architect of civilisation.</span></p>
           
-          <p className="product-description">AI is abundant, but energy is scarce. While AI could complete tasks directly, it consumes compute and power each time. Train a human once, and they can repeat the task thousands of times at <span className="highlight">near-zero marginal cost.</span> Humans are the most energy-efficient distributed engines on the planet.</p>
-          
-          <p className="product-description">Traditional education no longer guarantees employment. <span className="highlight">We do.</span></p>
-          
-          <p className="product-description">In the age of democratised engineering, individuals will no longer rely solely on corporations to create the world around them.</p>
-          
-          <p className="product-description">A person posts their need — a new car part, a clinic, a community system.</p>
-          
-          <p className="product-description"><span className="code-accent">AI decomposes it into thousands of tasks.</span></p>
-          
-          <p className="product-description">Swarms of people design, source, assemble, and validate.</p>
-          
-          <p className="product-description">This shift gives <span className="highlight">more power to the people</span>: creation is no longer monopolised by large organisations.</p>
-          
-          <p className="product-description">It leads to less exploitation, because economic opportunity is distributed across billions, not concentrated in a few companies.</p>
-          
-          <p className="product-description">And it creates a safer future, where society continuously builds for itself, fixing each other's problems and ensuring resilience.</p>
+          <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+        </section>
 
+        <section className="product-section">
+          <h2 className="section-title">5. The Civilisational Vision</h2>
+          
+          <p className="product-description">The paradigm will invert.</p>
+          
+          <p className="product-description">Today, humans build distributed machines.</p>
+          
+          <p className="product-description">Tomorrow, <span className="code-accent">ASI orchestrates humanity itself as the most successful biological compute cluster in history.</span></p>
+          
+          <p className="product-description">Creation will no longer be monopolised by corporations.</p>
+          
+          <p className="product-description">Economic opportunity will no longer be hoarded by the few.</p>
+          
+          <p className="product-description">Instead, opportunity and power are distributed across billions of Operator Nodes.</p>
+          
+          <p className="product-description">Humanity continuously builds for itself — solving problems, fixing systems, and ensuring resilience.</p>
+          
+          <p className="product-description"><em>From people to builders. From builders to architects of civilisation.</em></p>
         </section>
       </div>
     </div>

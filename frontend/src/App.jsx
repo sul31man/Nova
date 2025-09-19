@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { NavLink, Routes, Route } from 'react-router-dom'
+import { NavLink, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'
 import Home from './pages/Home.jsx'
 import Manifesto from './pages/Manifesto.jsx'
@@ -13,11 +13,13 @@ import Workspace from './pages/Workspace.jsx'
 import PhaseOne from './pages/PhaseOne.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import Cluster from './pages/Cluster.jsx'
+import Join from './pages/Join.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import logo from './my_images/logo.png'
 
 const AppContent = () => {
+  const location = useLocation()
   const [homeDropdownOpen, setHomeDropdownOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authModalMode, setAuthModalMode] = useState('login')
@@ -96,10 +98,12 @@ const AppContent = () => {
     transition: 'all 0.2s ease'
   }
 
-  const isHome = typeof window !== 'undefined' && (window.location.pathname === '/')
+  const isHome = location.pathname === '/'
+  const isJoin = location.pathname === '/join'
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: isJoin ? 0 : '2rem', maxWidth: isJoin ? 'none' : 960, margin: isJoin ? 0 : '0 auto' }}>
+      {!isJoin && (
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1, marginTop: isHome ? '0.75rem' : 0 }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', lineHeight: 1, paddingTop: '1px' }}>
           <img src={logo} alt="Nova logo" style={{ height: 26, width: 26, objectFit: 'contain', display: 'block' }} />
@@ -150,7 +154,7 @@ const AppContent = () => {
             </div>
           </div>
           <NavLink to="/my-tasks" style={linkStyle}>Execute</NavLink>
-          <NavLink to="/tasks" style={linkStyle}>Tasks</NavLink>
+          <NavLink to="/tasks" style={linkStyle}>Operations</NavLink>
           <NavLink to="/marketplace" style={linkStyle}>Marketplace</NavLink>
           <NavLink to="/education" style={linkStyle}>Education</NavLink>
           <NavLink to="/leaderboard" style={linkStyle}>Leaderboard</NavLink>
@@ -189,8 +193,8 @@ const AppContent = () => {
                 >
                   Sign In
                 </button>
-                <button 
-                  onClick={() => openAuthModal('register')}
+                <NavLink 
+                  to="/join"
                   style={{
                     background: '#000',
                     border: '2px solid #000',
@@ -205,22 +209,15 @@ const AppContent = () => {
                     transition: 'all 0.2s ease',
                     borderRadius: '4px'
                   }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = 'white'
-                    e.target.style.color = '#000'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#000'
-                    e.target.style.color = 'white'
-                  }}
                 >
                   Join Nova
-                </button>
+                </NavLink>
               </>
             )}
           </div>
         </nav>
       </header>
+      )}
 
       <main>
         <Routes>
@@ -232,6 +229,7 @@ const AppContent = () => {
           <Route path="/phase-one" element={<PhaseOne />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/cluster" element={<Cluster />} />
+          <Route path="/join" element={<Join />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-tasks" element={<MyTasks />} />

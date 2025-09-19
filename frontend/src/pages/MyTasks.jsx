@@ -120,8 +120,8 @@ export default function MyTasks() {
     <div className="my-tasks-container">
       <div className="my-tasks-content">
         <div className="my-tasks-header">
-          <h1 className="my-tasks-title">My Tasks</h1>
-          <p className="my-tasks-subtitle">Manage your assignments and track your progress</p>
+          <h1 className="my-tasks-title">Missions to Complete</h1>
+          <p className="my-tasks-subtitle">Manage your operations and track your progress</p>
           
           <div className="tasks-stats">
             <div className="stat-card">
@@ -148,7 +148,7 @@ export default function MyTasks() {
             className={`tab-button ${activeTab === 'assigned' ? 'active' : ''}`}
             onClick={() => setActiveTab('assigned')}
           >
-            Assigned Tasks ({tasks.assigned.length})
+            Assigned Operations ({tasks.assigned.length})
           </button>
           <button 
             className={`tab-button ${activeTab === 'completed' ? 'active' : ''}`}

@@ -252,7 +252,7 @@ export default function Home() {
           </h1>
           
           <p className="hero-subtitle">
-            Activating humanity as the world's most powerful distributed system — where AI and people learn, build, and solve the world's problems together.
+          STEM students waste years on assignments that don’t matter. Nova lets you do real missions, get paid instantly, and level up as an Operator Node in the cluster — always learning, always building, always employed.
           </p>
 
           {/* Mathematical “objective + constraints” strip */}

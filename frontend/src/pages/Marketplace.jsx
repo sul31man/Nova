@@ -122,7 +122,7 @@ export default function Marketplace() {
   return (
     <div className="marketplace-container">
       <div className="marketplace-content">
-        <h1 className="marketplace-title">Task Marketplace</h1>
+        <h1 className="marketplace-title">Operation Marketplace</h1>
         <p className="marketplace-subtitle">
           Browse engineering challenges broken down into actionable tasks. 
           Choose what interests you and contribute to building the future.
@@ -196,7 +196,7 @@ export default function Marketplace() {
         ) : (
           <div className="marketplace-layout">
             <div className="task-list">
-              <h2 className="section-title">Available Tasks</h2>
+              <h2 className="section-title">Available Missions</h2>
             <div className="filter-section">
               <select className="filter-select">
                 <option>All Difficulties</option>

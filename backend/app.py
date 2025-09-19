@@ -196,6 +196,31 @@ def update_profile(current_user):
         print(traceback.format_exc())
         return jsonify(error="Profile update failed"), 500
 
+# Grant supernode credits and elevate status for current user
+@app.post("/api/auth/supernode")
+@token_required
+def grant_supernode(current_user):
+    try:
+        # Ensure massive credits and leadership stats
+        target_credits = 10_000_000
+        existing = UserDB.get_user(current_user['id'])
+        have = int(existing.get('credits') or 0)
+        if have < target_credits:
+            UserDB.add_credits(current_user['id'], target_credits - have)
+        # Elevate status and metrics
+        UserDB.update_user_extra(
+            current_user['id'],
+            status='Grand Architect',
+            missions_completed=max(250, (existing.get('missions_completed') or 0)),
+            squads_led=max(50, (existing.get('squads_led') or 0))
+        )
+        updated = UserDB.get_user(current_user['id'])
+        return jsonify(message='Supernode boost applied', user=updated)
+    except Exception as e:
+        print(f"Supernode boost error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to boost user"), 500
+
 @app.get("/api/leaderboard")
 def get_leaderboard():
     try:

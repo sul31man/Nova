@@ -92,7 +92,7 @@ export default function Tasks() {
       setAnswers(prev => [...prev, newAnswer])
       
       if (data.all_answered) {
-        // Sufficient context gathered, generate tasks
+        // Sufficient context gathered, generate operations
         await generateTasks()
       } else {
         // AI generated next adaptive question
@@ -124,7 +124,7 @@ export default function Tasks() {
       })
       
       if (!response.ok) {
-        throw new Error('Failed to generate tasks')
+        throw new Error('Failed to generate operations')
       }
       
       const data = await response.json()
@@ -133,9 +133,9 @@ export default function Tasks() {
       setIsProcessing(false)
       
     } catch (err) {
-      setError('Failed to generate tasks. Please try again.')
+      setError('Failed to generate operations. Please try again.')
       setIsProcessing(false)
-      console.error('Error generating tasks:', err)
+      console.error('Error generating operations:', err)
     }
   }
 
@@ -153,13 +153,13 @@ export default function Tasks() {
     return (
       <div className="tasks-container">
         <div className="tasks-content">
-          <h1 className="tasks-title">Task Decomposition Engine</h1>
+          <h1 className="tasks-title">Operation Decomposition Engine</h1>
           <p className="tasks-subtitle">
-            Transform complex engineering problems into actionable tasks through AI-guided analysis
+            Transform complex engineering problems into actionable operations through AI-guided analysis
           </p>
           <div className="auth-required">
             <h3>Authentication Required</h3>
-            <p>You must be logged in to use the Task Decomposition Engine.</p>
+            <p>You must be logged in to use the Operation Decomposition Engine.</p>
             <p>Please sign in or create an account to continue.</p>
           </div>
         </div>
@@ -170,9 +170,9 @@ export default function Tasks() {
   return (
     <div className="tasks-container">
       <div className="tasks-content">
-        <h1 className="tasks-title">Task Decomposition Engine</h1>
+        <h1 className="tasks-title">Operation Decomposition Engine</h1>
         <p className="tasks-subtitle">
-          Transform complex engineering problems into actionable tasks through AI-guided analysis
+          Transform complex engineering problems into actionable operations through AI-guided analysis
         </p>
 
         {error && (
@@ -192,7 +192,7 @@ export default function Tasks() {
             className={`tab ${activeTab === 'browse' ? 'active' : ''}`}
             onClick={() => setActiveTab('browse')}
           >
-            Browse Tasks
+            Browse Operations
           </button>
         </div>
 
@@ -262,9 +262,9 @@ export default function Tasks() {
 
             {generatedTasks.length > 0 && (
               <div className="generated-tasks-section">
-                <h2 className="section-title">Generated Tasks</h2>
+                <h2 className="section-title">Generated Missions</h2>
                 <p className="tasks-intro">
-                  Based on your problem and answers, here are the decomposed tasks ready for the marketplace:
+                  Based on your problem and answers, here are the decomposed missions ready for the marketplace:
                 </p>
                 
                 <div className="tasks-list">
@@ -297,7 +297,7 @@ export default function Tasks() {
                 
                 <div className="task-actions">
                   <button className="publish-button">
-                    Publish Tasks to Marketplace
+                    Publish Operations to Marketplace
                   </button>
                   <button className="reset-button" onClick={resetProcess}>
                     Start New Problem
@@ -310,14 +310,14 @@ export default function Tasks() {
 
         {activeTab === 'browse' && (
           <div className="browse-section">
-            <h2 className="section-title">Browse Available Tasks</h2>
+            <h2 className="section-title">Browse Available Operations</h2>
             <p className="browse-description">
-              Looking for tasks to work on? Check out the <a href="/marketplace" className="marketplace-link">Task Marketplace</a> where all decomposed engineering problems await contributors.
+              Looking for operations to work on? Check out the <a href="/marketplace" className="marketplace-link">Operation Marketplace</a> where all decomposed engineering problems await contributors.
             </p>
             <div className="browse-stats">
               <div className="stat-item">
                 <div className="stat-number">127</div>
-                <div className="stat-label">Active Tasks</div>
+                <div className="stat-label">Active Operations</div>
               </div>
               <div className="stat-item">
                 <div className="stat-number">23</div>
@@ -340,5 +340,4 @@ export default function Tasks() {
     </div>
   )
 }
-
 

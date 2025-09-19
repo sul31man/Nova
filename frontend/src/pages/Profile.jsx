@@ -17,6 +17,7 @@ export default function Profile() {
   const [reportInputs, setReportInputs] = useState({ about: '', interests: '', years_experience: '', preferred_roles: '', projects: '' })
   const [reportLoading, setReportLoading] = useState(false)
   const [characterReport, setCharacterReport] = useState(null)
+  const [boosting, setBoosting] = useState(false)
   const [formData, setFormData] = useState({
     full_name: user?.full_name || '',
     bio: user?.bio || '',
@@ -62,6 +63,25 @@ export default function Profile() {
       setMessage(e.message)
     } finally {
       setReportLoading(false)
+    }
+  }
+
+  const boostSupernode = async () => {
+    if (!token) return
+    setBoosting(true)
+    setMessage('')
+    try {
+      const res = await fetch('/api/auth/supernode', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Failed to boost')
+      setMessage('Supernode boost applied! You are now a Grand Architect.')
+    } catch (e) {
+      setMessage(e.message)
+    } finally {
+      setBoosting(false)
     }
   }
 
@@ -216,6 +236,16 @@ export default function Profile() {
               onClick={() => setEditing(true)}
             >
               Edit Profile
+            </button>
+          )}
+          {!editing && (
+            <button 
+              className="edit-profile-btn"
+              style={{ marginLeft: '0.5rem', background: '#2563eb' }}
+              onClick={boostSupernode}
+              disabled={boosting}
+            >
+              {boosting ? 'Boosting…' : 'Supernode Boost'}
             </button>
           )}
         </div>

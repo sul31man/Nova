@@ -75,6 +75,9 @@ export default function Cluster() {
       // User stars as spheres with emissive glow and planet systems
       const systems = new THREE.Group()
       scene.add(systems)
+      // Dynamic hover links
+      const linkGroup = new THREE.Group()
+      scene.add(linkGroup)
 
       const importance = (u) => {
         const missions = Number(u.missions_completed || 0)
@@ -85,7 +88,7 @@ export default function Cluster() {
         return missions * 4 + squads * 6 + credits / 40 + statusBonus + 5
       }
 
-      const createSystem = (label, importanceScore, colorHex = 0xffffff, center = new THREE.Vector3()) => {
+      const createSystem = (label, importanceScore, colorHex = 0xffffff, center = new THREE.Vector3(), meta = {}) => {
         const size = Math.min(3.2, 1 + Math.sqrt(importanceScore) * 0.4)
         const starMat = new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 0.9, metalness: 0.1, roughness: 0.4 })
         const star = new THREE.Mesh(new THREE.SphereGeometry(size, 24, 24), starMat)
@@ -112,7 +115,7 @@ export default function Cluster() {
           group.add(ring)
           group.add(orbit)
         }
-        group.userData = { label, size }
+        group.userData = { label, size, meta }
         systems.add(group)
         return group
       }
@@ -125,15 +128,40 @@ export default function Cluster() {
         return new THREE.Vector3(Math.cos(angle) * r, (Math.random() - 0.5) * 12, Math.sin(angle) * r)
       }
 
+      // Build a simple squad map: choose users with squads_led>0 as leaders; else top 3
+      const sorted = [...leaderboard]
+      sorted.sort((a,b)=> (b.squads_led||0)-(a.squads_led||0) || (b.missions_completed||0)-(a.missions_completed||0))
+      let leaders = sorted.filter(u => (u.squads_led||0) > 0)
+      if (leaders.length === 0) leaders = sorted.slice(0, Math.min(3, sorted.length))
+      const leaderIds = leaders.map(u=>u.id)
+      const membersOf = new Map(leaderIds.map(id=>[id, []]))
+      const memberLeader = new Map()
+      // Assign each non-leader to a leader round-robin
+      let li = 0
+      leaderboard.forEach(u => {
+        if (!leaderIds.includes(u.id)) {
+          if (leaderIds.length) {
+            const leaderId = leaderIds[li % leaderIds.length]
+            membersOf.get(leaderId).push(u.id)
+            memberLeader.set(u.id, leaderId)
+            li++
+          }
+        }
+      })
+
+      const groupById = new Map()
+
       // Leaderboard systems
       leaderboard.forEach((u, i) => {
         const imp = importance(u)
         const pos = placeOnSpiral(i, Math.max(leaderboard.length, 1))
-        createSystem(u.full_name || u.username || 'Contributor', imp, 0xffffff, pos)
+        const leaderId = leaderIds.includes(u.id) ? u.id : memberLeader.get(u.id) || null
+        const g = createSystem(u.full_name || u.username || 'Contributor', imp, 0xffffff, pos, { id: u.id, leaderId })
+        groupById.set(u.id, g)
       })
 
       // You at the center
-      const you = createSystem(user?.full_name || user?.username || 'You', 90, 0x9ae6ff, new THREE.Vector3(0, 0, 0))
+      const you = createSystem(user?.full_name || user?.username || 'You', 90, 0x9ae6ff, new THREE.Vector3(0, 0, 0), { id: 'you', leaderId: null })
       const youLight = new THREE.PointLight(0x9ae6ff, 2, 200)
       you.add(youLight)
 
@@ -185,23 +213,42 @@ export default function Cluster() {
 
         // Hover detection
         raycaster.setFromCamera(mouse, camera)
-        const spheres = []
-        systems.children.forEach(g => {
-          g.traverse(o => { if (o.isMesh && o.geometry?.type === 'SphereGeometry') spheres.push(o) })
-        })
-        const hits = raycaster.intersectObjects(spheres, true)
+        const roots = []
+        systems.children.forEach(g => { roots.push(g) })
+        const hits = raycaster.intersectObjects(roots, true)
         if (hits.length > 0) {
-          const obj = hits[0].object
-          const group = obj.parent
-          labelEl.textContent = group?.parent?.userData?.label || group?.userData?.label || 'Contributor'
+          // Find root group (system) for hovered object
+          let group = hits[0].object
+          while (group && !group.userData?.label) group = group.parent
+          labelEl.textContent = group?.userData?.label || 'Contributor'
           const sp = hits[0].point.clone().project(camera)
           const x = (sp.x * 0.5 + 0.5) * renderer.domElement.clientWidth
           const y = (-sp.y * 0.5 + 0.5) * renderer.domElement.clientHeight
           labelEl.style.left = `${x}px`
           labelEl.style.top = `${y}px`
           labelEl.style.display = 'block'
+
+          // Draw squad links: from leader to all its members when hovering a member or leader
+          // Clear existing
+          while (linkGroup.children.length) linkGroup.remove(linkGroup.children[0])
+          const meta = group?.userData?.meta || {}
+          const leaderId = meta.leaderId || meta.id
+          if (leaderId && groupById.has(leaderId)) {
+            const leaderGroup = groupById.get(leaderId)
+            const leaderPos = new THREE.Vector3().setFromMatrixPosition(leaderGroup.matrixWorld)
+            const members = membersOf.get(leaderId) || []
+            const mat = new THREE.LineBasicMaterial({ color: 0x88ccff, transparent: true, opacity: 0.6 })
+            members.forEach(mid => {
+              const mg = groupById.get(mid)
+              if (!mg) return
+              const memberPos = new THREE.Vector3().setFromMatrixPosition(mg.matrixWorld)
+              const geo = new THREE.BufferGeometry().setFromPoints([leaderPos, memberPos])
+              linkGroup.add(new THREE.Line(geo, mat))
+            })
+          }
         } else {
           labelEl.style.display = 'none'
+          while (linkGroup.children.length) linkGroup.remove(linkGroup.children[0])
         }
 
         renderer.render(scene, camera)
