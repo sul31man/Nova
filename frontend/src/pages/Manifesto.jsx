@@ -49,7 +49,7 @@ export default function Manifesto() {
           
           <ul className="product-description">
             <li><span className="code-accent">AI decomposes work into thousands of tasks.</span></li>
-            <li>Operator Nodes pick up missions, guided by the Morphic IDE.</li>
+            <li>Operator Nodes pick up missions, guided by the <strong>Morphic IDE</strong>.</li>
             <li>The Cluster Scheduler matches, teaches, and levels up each node.</li>
             <li>Swarms of nodes collaborate on projects, outputs are validated, and progress compounds.</li>
           </ul>

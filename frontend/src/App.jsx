@@ -3,6 +3,8 @@ import { NavLink, Routes, Route, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext.jsx'
 import Home from './pages/Home.jsx'
 import Manifesto from './pages/Manifesto.jsx'
+import MorphicIDE from './pages/MorphicIDE.jsx'
+import Rewards from './pages/Rewards.jsx'
 import Tasks from './pages/Tasks.jsx'
 import Marketplace from './pages/Marketplace.jsx'
 import Education from './pages/Education.jsx'
@@ -71,16 +73,17 @@ const AppContent = () => {
 
   const dropdownStyle = {
     position: 'relative',
-    display: 'inline-block'
+    display: 'inline-block',
+    zIndex: 1000
   }
 
   const dropdownContentStyle = {
     display: homeDropdownOpen ? 'block' : 'none',
     position: 'absolute',
     backgroundColor: 'white',
-    minWidth: '160px',
+    minWidth: '200px',
     boxShadow: '0px 8px 16px 0px rgba(0,0,0,0.2)',
-    zIndex: 1,
+    zIndex: 2000,
     top: '100%',
     right: 0,
     border: '1px solid #eee'
@@ -104,7 +107,7 @@ const AppContent = () => {
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: isJoin ? 0 : '2rem', maxWidth: isJoin ? 'none' : 960, margin: isJoin ? 0 : '0 auto' }}>
       {!isJoin && (
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1, marginTop: isHome ? '0.75rem' : 0 }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1, marginTop: isHome ? '0.75rem' : 0, position: 'relative', zIndex: 3000 }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', lineHeight: 1, paddingTop: '1px' }}>
           <img src={logo} alt="Nova logo" style={{ height: 26, width: 26, objectFit: 'contain', display: 'block' }} />
           <span style={{ fontFamily: 'JetBrains Mono, Space Mono, Courier New, monospace', fontWeight: 700, fontSize: '1.05rem', color: '#000', letterSpacing: '0.5px', lineHeight: 1, position: 'relative', top: '-1px' }}>Nova</span>
@@ -141,6 +144,24 @@ const AppContent = () => {
                 onClick={() => setHomeDropdownOpen(false)}
               >
                 Manifesto
+              </NavLink>
+              <NavLink 
+                to="/rewards" 
+                style={dropdownLinkStyle}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
+              >
+                Rewards
+              </NavLink>
+              <NavLink 
+                to="/morphic-ide" 
+                style={dropdownLinkStyle}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
+              >
+                The Morphic IDE
               </NavLink>
               <NavLink 
                 to="/phase-one" 
@@ -223,6 +244,8 @@ const AppContent = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/manifesto" element={<Manifesto />} />
+          <Route path="/rewards" element={<Rewards />} />
+          <Route path="/morphic-ide" element={<MorphicIDE />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
