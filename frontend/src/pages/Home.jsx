@@ -295,7 +295,7 @@ export default function Home() {
       <section className="image-banner" role="region" aria-label="Showcase">
         <div className="image-banner__overlay" aria-hidden="true" />
         <div className="image-banner__content">
-          <h2 className="image-banner__title">Be Part of Building the Future</h2>
+          <h2 className="image-banner__title">Helping Everybody become a Builder</h2>
           <p className="image-banner__subtitle">
             Build Together
           </p>
@@ -320,10 +320,10 @@ export default function Home() {
       {/* Second Image + Text Section (no animation) */}
       <section className="image-banner image-banner--secondary" role="region" aria-label="Showcase 2">
         <div className="image-banner__overlay" aria-hidden="true" />
-        <div className="image-banner__content">
-          <h2 className="image-banner__title">Giving the people ownership over our future</h2>
-          <p className="image-banner__subtitle">Grouping people together more efficiently than ever before</p>
-          <p className="image-banner__subtitle">Learning has never been faster and easier</p>
+        <div className="image-banner__content image-banner__content--right">
+          <h2 className="image-banner__title">Building Never Had to be Hard</h2>
+          <p className="image-banner__subtitle">Giving you missions you can complete and be rewarded for quickly</p>
+          <p className="image-banner__subtitle">Giving you the best path to become the 10x engineer you always could've been</p>
         </div>
       </section>
       

@@ -29,6 +29,12 @@ export default function PhaseOne() {
           Phase 1 begins with STEM and engineering work — data ops, CAD annotation, test automation, sourcing parts — but the path is clear: Nova grows into a global system where <strong>every human becomes a node in the cluster</strong>, learning, building, and solving problems together at planetary scale.
           </p>
           <p className="product-description">
+          And unlike gig platforms, Nova’s <strong>Cluster Scheduler</strong> exists for one reason: to keep you employed. Its algorithm is designed to match you with the right missions, teach you what you need in real time, and optimise the Morphic IDE around you — maximising your <strong>signal to noise ratio</strong> so you’re always learning, always building, and always earning.
+          </p>
+          <p className="product-description">
+          Nova’s Cluster Scheduler doesn’t just find you work — it <strong>curates your entire journey</strong>. It starts you with missions easy enough to reward you quickly, then steadily escalates difficulty and impact so you <strong>never stagnate</strong>.At every step, you're rewarded and levelled up, guided by the optimal learning plan, workbench, and project sequence.<p><strong> The goal is simple: to push you into becoming the best engineer you can be — a 10x architect of human civilisation — by keeping you always learning, always earning, and always building </strong></p>
+          </p>
+          <p className="product-description">
             Suggested outline: sign up → generate character report → get a
             learning plan → apply to tasks → collaborate → earn credits.
           </p>
