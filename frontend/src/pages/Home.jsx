@@ -295,7 +295,7 @@ export default function Home() {
       <section className="image-banner" role="region" aria-label="Showcase">
         <div className="image-banner__overlay" aria-hidden="true" />
         <div className="image-banner__content">
-          <h2 className="image-banner__title">Helping Everybody become a Builder</h2>
+          <h2 className="image-banner__title">Turning People to Builders to Architects of the future</h2>
           <p className="image-banner__subtitle">
             Build Together
           </p>
@@ -326,7 +326,10 @@ export default function Home() {
           <p className="image-banner__subtitle">Giving you the best path to become the 10x engineer you always could've been</p>
         </div>
       </section>
-      
+    
+    <p><em>From people to builders, from builders to architects of civilisation.</em></p>
+    <p>Nova 2025 - Suleiman Khan></p>
     </div>
+    
   )
 }
