@@ -21,7 +21,8 @@ export default function Profile() {
     full_name: user?.full_name || '',
     bio: user?.bio || '',
     skills: user?.skills || [],
-    avatar_url: user?.avatar_url || ''
+    avatar_url: user?.avatar_url || '',
+    status: user?.status || ''
   })
 
   const handleInputChange = (e) => {
@@ -196,6 +197,9 @@ export default function Profile() {
                 {user.full_name || user.username}
               </h1>
               <p className="profile-username">@{user.username}</p>
+              {user.status && (
+                <p className="profile-username" style={{ color: '#000', fontWeight: 600 }}>Status: {user.status}</p>
+              )}
               <p className="profile-email">{user.email}</p>
               <div className="profile-stats">
                 <span className="profile-credits">{user.credits || 0} credits</span>
@@ -262,6 +266,30 @@ export default function Profile() {
                     placeholder="e.g., Python, React, Machine Learning"
                   />
                   <small>Separate skills with commas</small>
+                </div>
+
+              <div className="form-field">
+                  <label htmlFor="status">Status</label>
+                  <select id="status" name="status" value={formData.status} onChange={handleInputChange}>
+                    <option value="">Select status</option>
+                    <option value="Grand Architect">Grand Architect</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Builder">Builder</option>
+                    <option value="Architect">Architect</option>
+                    <option value="Operator">Operator</option>
+                    <option value="Researcher">Researcher</option>
+                  </select>
+                </div>
+
+                <div className="form-field" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <label htmlFor="missions_completed">Missions Completed</label>
+                    <input type="number" id="missions_completed" name="missions_completed" value={formData.missions_completed || ''} onChange={handleInputChange} placeholder="0" />
+                  </div>
+                  <div>
+                    <label htmlFor="squads_led">Squads Led</label>
+                    <input type="number" id="squads_led" name="squads_led" value={formData.squads_led || ''} onChange={handleInputChange} placeholder="0" />
+                  </div>
                 </div>
 
                 <div className="form-field">

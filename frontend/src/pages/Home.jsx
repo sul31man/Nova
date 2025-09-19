@@ -328,7 +328,7 @@ export default function Home() {
       </section>
     
     <p><em>From people to builders, from builders to architects of civilisation.</em></p>
-    <p>Nova 2025 - Suleiman Khan></p>
+    <p>Nova 2025 - Suleiman Khan</p>
     </div>
     
   )

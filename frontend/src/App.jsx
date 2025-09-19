@@ -11,6 +11,8 @@ import Settings from './pages/Settings.jsx'
 import MyTasks from './pages/MyTasks.jsx'
 import Workspace from './pages/Workspace.jsx'
 import PhaseOne from './pages/PhaseOne.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
+import Cluster from './pages/Cluster.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import logo from './my_images/logo.png'
@@ -94,9 +96,11 @@ const AppContent = () => {
     transition: 'all 0.2s ease'
   }
 
+  const isHome = typeof window !== 'undefined' && (window.location.pathname === '/')
+
   return (
     <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: '2rem', maxWidth: 960, margin: '0 auto' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1 }}>
+      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1, marginTop: isHome ? '0.75rem' : 0 }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', lineHeight: 1, paddingTop: '1px' }}>
           <img src={logo} alt="Nova logo" style={{ height: 26, width: 26, objectFit: 'contain', display: 'block' }} />
           <span style={{ fontFamily: 'JetBrains Mono, Space Mono, Courier New, monospace', fontWeight: 700, fontSize: '1.05rem', color: '#000', letterSpacing: '0.5px', lineHeight: 1, position: 'relative', top: '-1px' }}>Nova</span>
@@ -149,6 +153,8 @@ const AppContent = () => {
           <NavLink to="/tasks" style={linkStyle}>Tasks</NavLink>
           <NavLink to="/marketplace" style={linkStyle}>Marketplace</NavLink>
           <NavLink to="/education" style={linkStyle}>Education</NavLink>
+          <NavLink to="/leaderboard" style={linkStyle}>Leaderboard</NavLink>
+          <NavLink to="/cluster" style={linkStyle}>Cluster</NavLink>
           
           {/* Authentication Section */}
           <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', lineHeight: 1 }}>
@@ -224,6 +230,8 @@ const AppContent = () => {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
           <Route path="/phase-one" element={<PhaseOne />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/cluster" element={<Cluster />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/my-tasks" element={<MyTasks />} />

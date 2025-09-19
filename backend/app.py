@@ -174,6 +174,14 @@ def update_profile(current_user):
             skills=data.get('skills'),
             avatar_url=data.get('avatar_url')
         )
+        # Optional extras: status and leaderboard metrics
+        if any(k in data for k in ("status", "missions_completed", "squads_led")):
+            UserDB.update_user_extra(
+                current_user['id'],
+                status=data.get('status'),
+                missions_completed=data.get('missions_completed'),
+                squads_led=data.get('squads_led')
+            )
         
         # Get updated user data
         updated_user = UserDB.get_user(current_user['id'])
@@ -187,6 +195,17 @@ def update_profile(current_user):
         print(f"Profile update error: {e}")
         print(traceback.format_exc())
         return jsonify(error="Profile update failed"), 500
+
+@app.get("/api/leaderboard")
+def get_leaderboard():
+    try:
+        limit = int(request.args.get('limit', 50))
+        users = UserDB.leaderboard(limit=limit)
+        return jsonify(users=users)
+    except Exception as e:
+        print(f"Leaderboard error: {e}")
+        traceback.print_exc()
+        return jsonify(error="Failed to load leaderboard"), 500
 
 # Education: generate learning plan
 @app.post("/api/education/plan")

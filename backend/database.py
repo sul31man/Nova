@@ -5,6 +5,7 @@ import hashlib
 import secrets
 from datetime import datetime
 from dotenv import load_dotenv
+import random
 
 # Load environment variables
 load_dotenv()
@@ -90,6 +91,20 @@ def init_database():
             last_login TIMESTAMP
         )
     ''')
+
+    # Backfill columns for user status and leaderboard metrics if missing
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN status TEXT')
+    except Exception:
+        pass
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN missions_completed INTEGER DEFAULT 0')
+    except Exception:
+        pass
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN squads_led INTEGER DEFAULT 0')
+    except Exception:
+        pass
     
     # Task applications table - stores who applied for what tasks
     cursor.execute('''
@@ -174,6 +189,12 @@ def init_database():
     finally:
         conn.close()
         print("Database initialized successfully!")
+
+    # Seed mock users for demo if not present
+    try:
+        UserDB.seed_mock_users(20)
+    except Exception as e:
+        print(f"Mock user seeding skipped: {e}")
 
 def get_db_connection():
     """Get a database connection"""
@@ -653,6 +674,12 @@ class UserDB:
         if avatar_url is not None:
             updates.append("avatar_url = ?")
             values.append(avatar_url)
+        # Optional status and leaderboard metrics
+        status = None
+        missions_completed = None
+        squads_led = None
+        # Values may be passed via kwargs in caller; this function stays flexible
+        # We check locals of outer scope via closure not ideal; instead accept via globals
         
         if updates:
             values.append(user_id)
@@ -661,6 +688,42 @@ class UserDB:
             conn.commit()
         
         conn.close()
+
+    @staticmethod
+    def update_user_extra(user_id, status=None, missions_completed=None, squads_led=None):
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        updates = []
+        values = []
+        if status is not None:
+            updates.append('status = ?')
+            values.append(status)
+        if missions_completed is not None:
+            updates.append('missions_completed = ?')
+            values.append(int(missions_completed))
+        if squads_led is not None:
+            updates.append('squads_led = ?')
+            values.append(int(squads_led))
+        if updates:
+            values.append(user_id)
+            cursor.execute(f"UPDATE users SET {', '.join(updates)} WHERE id = ?", values)
+            conn.commit()
+        conn.close()
+
+    @staticmethod
+    def leaderboard(limit=50):
+        conn = get_db_connection()
+        rows = conn.execute(
+            '''SELECT id, username, full_name, avatar_url, credits, status,
+                      COALESCE(missions_completed,0) AS missions_completed,
+                      COALESCE(squads_led,0) AS squads_led,
+                      created_at
+               FROM users
+               ORDER BY missions_completed DESC, squads_led DESC, credits DESC, created_at ASC
+               LIMIT ?''', (limit,)
+        ).fetchall()
+        conn.close()
+        return [dict(r) for r in rows]
 
     @staticmethod
     def add_credits(user_id, credits):
@@ -672,6 +735,31 @@ class UserDB:
         )
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def seed_mock_users(n=15):
+        """Insert mock Builder users if they don't already exist."""
+        names = [
+            'Builder Orion','Builder Lyra','Builder Vega','Builder Altair','Builder Nova',
+            'Builder Phoenix','Builder Atlas','Builder Cygnus','Builder Argo','Builder Helios',
+            'Builder Aurora','Builder Titan','Builder Aster','Builder Zenith','Builder Polaris',
+            'Builder Kepler','Builder Sirius','Builder Rigel','Builder Bellatrix','Builder Procyon'
+        ]
+        for i in range(min(n, len(names))):
+            username = f"builder{i+1}"
+            email = f"{username}@example.com"
+            full_name = names[i]
+            user_id, err = UserDB.create_user(username, email, "password123", full_name)
+            if user_id:
+                # Set status and lightweight metrics
+                missions = random.randint(0, 3)
+                squads = random.randint(0, 1)
+                UserDB.update_user_extra(user_id, status='Builder', missions_completed=missions, squads_led=squads)
+                # Give a small amount of credits to diversify ordering
+                UserDB.add_credits(user_id, random.choice([25, 50, 75, 100]))
+            else:
+                # Ignore if already exists
+                continue
 
 class LearningPlanDB:
     @staticmethod
