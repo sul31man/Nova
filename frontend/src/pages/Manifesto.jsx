@@ -96,6 +96,36 @@ export default function Manifesto() {
           
           <p className="product-description"><em>From people to builders. From builders to architects of civilisation.</em></p>
         </section>
+
+        <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
+
+        <section className="product-section">
+          <h2 className="section-title">6. The Engine of the Cluster</h2>
+          <p className="product-description">
+            At the heart of Nova are two living systems: the Cluster Scheduler and the Morphic IDE.
+          </p>
+          <ul className="product-description">
+            <li>
+              <strong>The Cluster Scheduler is the orchestrator.</strong><br />
+              It keeps every Operator in motion — sequencing missions so there is no wasted effort. It ensures you are never idle, always challenged, always rewarded. It maps skills, tracks progress, forms swarms, and curates the optimal journey for every individual and for civilisation as a whole.
+            </li>
+            <li>
+              <strong>The Morphic IDE is the forge.</strong><br />
+              A self-evolving workbench that morphs to fit the mission. At first, it scrapes together the scattered resources we have today — code, docs, tools — but with every mission it becomes sharper, smarter, and more complete. It does not wait for you to master it; it teaches you as you build. The workbench itself is your tutor, scaffolding your path as you grow.
+            </li>
+          </ul>
+          <p className="product-description">
+            Together, these two systems form a self-feeding data engine.<br />
+            Every mission generates interaction data — how Operators learn, where they struggle, what scaffolds work, what solutions succeed. That data flows back into the Scheduler and the IDE, making them both stronger.
+          </p>
+          <p className="product-description">
+            The more missions you complete, the more powerful the system becomes.<br />
+            The more the system improves, the more ambitious the missions it can unlock.
+          </p>
+          <p className="product-description">
+            This is the compounding loop: a cluster that learns from humanity, to make humanity sharper at building.
+          </p>
+        </section>
       </div>
     </div>
   )

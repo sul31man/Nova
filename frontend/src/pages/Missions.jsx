@@ -24,6 +24,9 @@ export default function Missions() {
           <p className="product-description">
           • The Scheduler feeds you missions that cut straight to the signal — the right task, at the right moment, with zero wasted effort.
           </p>
+          <p className="product-description">
+          • Nova is not just a platform — it’s a self-reinforcing data engine. Every mission solved makes the Cluster sharper, the Scheduler smarter, and the Morphic IDE stronger. The workbench learns from civilisation itself.
+          </p>
         </section>
 
         <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>

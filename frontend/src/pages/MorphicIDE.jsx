@@ -16,13 +16,16 @@ export default function MorphicIDE() {
         <section className="product-section">
           <h2 className="section-title">What Is It?</h2>
           <p className="product-description">
-            The Morphic IDE is humanity's workbench.
+            The Morphic IDE is humanity’s forge — a living workbench that shapes itself to you.
           </p>
           <p className="product-description">
-            It begins by scraping the scattered resources we have now — code, docs, tools — but becomes more. Every mission forges it further. Every Operator contributes to it. It is the living hub of open source, but a dynamic workbench that morphs to every mission.
+            It begins with what we already have: the scattered resources of code, libraries, and tools. But with every mission completed, it grows sharper, smarter, more complete. Every Operator who touches it leaves an imprint; every build strengthens it.
           </p>
           <p className="product-description">
-            It belongs to the people — it is their forge, their tool, their inheritance.
+            Unlike the tools of the past, it doesn’t wait for you to master it. The Morphic IDE teaches you as you build. It scaffolds your path, fills in your gaps, and reveals new skills exactly when you need them. The forge itself is your tutor — a tool that shows you how to wield it.
+          </p>
+          <p className="product-description">
+            It belongs to everyone. Not a closed product, but a universal inheritance: humanity’s first self-evolving workbench.
           </p>
         </section>
 
