@@ -6,8 +6,10 @@ export default function MorphicIDE() {
   return (
     <div className="home-container">
       <div className="home-content">
-        <h1 className="home-title">The Morphic Ide</h1>
+        <h1 className="home-title">The Morphic IDE</h1>
         <p className="home-subtitle">Adaptive, ritualistic tooling for building with the Cluster</p>
+        <p className="home-subtitle">The very first mission posted by the Scheduler is the Morphic IDE itself. Symbolic and necessary — the forge must be built even as we use it. Tools before products, yes, but never tools alone. While Operators tackle company missions, cluster missions, and their own creations, the Morphic IDE grows alongside them — the opening act of the Cluster. A workbench that sharpens itself as civilisation builds upon it.</p>
+        
 
         <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
 
