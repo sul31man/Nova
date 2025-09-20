@@ -295,7 +295,7 @@ export default function Home() {
       <section className="image-banner" role="region" aria-label="Showcase">
         <div className="image-banner__overlay" aria-hidden="true" />
         <div className="image-banner__content">
-          <h2 className="image-banner__title">Turning People to Builders to Architects of the future</h2>
+          <h2 className="image-banner__title">From people to builders, from builders to architects of civilisation </h2>
           <p className="image-banner__subtitle">
             Build Together
           </p>
@@ -321,7 +321,7 @@ export default function Home() {
       <section className="image-banner image-banner--secondary" role="region" aria-label="Showcase 2">
         <div className="image-banner__overlay" aria-hidden="true" />
         <div className="image-banner__content image-banner__content--right">
-          <h2 className="image-banner__title">Building Never Had to be Hard</h2>
+          <h2 className="image-banner__title">Simplifying and Rewarding Innovation</h2>
           <p className="image-banner__subtitle">Giving you missions you can complete and be rewarded for quickly</p>
           <p className="image-banner__subtitle">Giving you the best path to become the 10x engineer you always could've been</p>
         </div>

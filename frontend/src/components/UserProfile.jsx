@@ -77,6 +77,9 @@ const UserProfile = () => {
             <button className="dropdown-item" onClick={() => handleNavigation('/profile')}>
               <span>Profile</span>
             </button>
+            <button className="dropdown-item" onClick={() => handleNavigation('/learning-path')}>
+              <span>Learning Path</span>
+            </button>
             <button className="dropdown-item" onClick={() => handleNavigation('/settings')}>
               <span>Settings</span>
             </button>

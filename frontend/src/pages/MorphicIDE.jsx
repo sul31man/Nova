@@ -1,11 +1,12 @@
 import React from 'react'
+import { NavLink } from 'react-router-dom'
 import './Home.css'
 
 export default function MorphicIDE() {
   return (
     <div className="home-container">
       <div className="home-content">
-        <h1 className="home-title">The Morphic IDE</h1>
+        <h1 className="home-title">The Morphic Ide</h1>
         <p className="home-subtitle">Adaptive, ritualistic tooling for building with the Cluster</p>
 
         <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
@@ -121,38 +122,21 @@ export default function MorphicIDE() {
         </section>
 
         <div style={{ margin: '2rem 0', borderTop: '2px solid #ddd', paddingTop: '1rem' }}></div>
-
+        
         <section className="product-section">
           <h2 className="section-title">Why Now?</h2>
           <p className="product-description">
             The future of IDEs will not look like the tools we know today. With AI woven into every layer, the barrier to entry collapses. Engineering transforms from an elite practice into a universal capability.
           </p>
           <p className="product-description">
-            The Morphic IDE is the first of this new generation — adaptive, open-source, and alive — the workbench of humanity.
+            The Morphic Ide is the first of this new generation — adaptive, open-source, and alive — the workbench of humanity.
           </p>
         </section>
 
-        <section className="product-section">
-          <h2 className="section-title">Rewards</h2>
-          <p className="product-description">
-            Nova recognises contribution with clear, compounding rewards. As you build, you ascend through tiers that unlock status, credits, and leadership.
-          </p>
-          <p className="product-description">
-            - Beginner → Learn and complete guided operations. Earn starter credits and your Operator Card.
-          </p>
-          <p className="product-description">
-            - Builder → Ship independent operations with tests. Higher credit rates and priority access to missions.
-          </p>
-          <p className="product-description">
-            - Architect → Design and lead squads. Squad bonus credits, governance weight, and curation rights.
-          </p>
-          <p className="product-description">
-            - Grand Architect → Steward large initiatives across the Cluster. Premium multipliers and the ability to found new programs.
-          </p>
-          <p className="product-description">
-            Credits are convertible within the ecosystem and signal trust. Your tier is displayed across the Cluster and in the Leaderboard.
-          </p>
-        </section>
+        {/* Bottom CTA to the launch sequence page */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '2rem' }}>
+          <NavLink to="/morphic-ide/launch" className="cta-primary">Enter The Morphic Ide</NavLink>
+        </div>
       </div>
     </div>
   )

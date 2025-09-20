@@ -16,6 +16,10 @@ import PhaseOne from './pages/PhaseOne.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 import Cluster from './pages/Cluster.jsx'
 import Join from './pages/Join.jsx'
+import Achievements from './pages/Achievements.jsx'
+import LearningPath from './pages/LearningPath.jsx'
+import IDEStandalone from './pages/IDEStandalone.jsx'
+import MorphicLaunch from './pages/MorphicLaunch.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import logo from './my_images/logo.png'
@@ -103,10 +107,11 @@ const AppContent = () => {
 
   const isHome = location.pathname === '/'
   const isJoin = location.pathname === '/join'
+  const isMorphicLaunch = location.pathname.startsWith('/morphic-ide/launch')
 
   return (
-    <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: isJoin ? 0 : '2rem', maxWidth: isJoin ? 'none' : 960, margin: isJoin ? 0 : '0 auto' }}>
-      {!isJoin && (
+    <div style={{ fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif', padding: (isJoin || isMorphicLaunch) ? 0 : '2rem', maxWidth: (isJoin || isMorphicLaunch) ? 'none' : 960, margin: (isJoin || isMorphicLaunch) ? 0 : '0 auto' }}>
+      {!(isJoin || isMorphicLaunch) && (
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem', paddingTop: '0.5rem', lineHeight: 1, marginTop: isHome ? '0.75rem' : 0, position: 'relative', zIndex: 3000 }}>
         <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', lineHeight: 1, paddingTop: '1px' }}>
           <img src={logo} alt="Nova logo" style={{ height: 26, width: 26, objectFit: 'contain', display: 'block' }} />
@@ -177,9 +182,10 @@ const AppContent = () => {
           <NavLink to="/my-tasks" style={linkStyle}>Execute</NavLink>
           <NavLink to="/tasks" style={linkStyle}>Operations</NavLink>
           <NavLink to="/marketplace" style={linkStyle}>Marketplace</NavLink>
-          <NavLink to="/education" style={linkStyle}>Education</NavLink>
+          <NavLink to="/morphic-ide" style={linkStyle}>The Morphic Ide</NavLink>
           <NavLink to="/leaderboard" style={linkStyle}>Leaderboard</NavLink>
           <NavLink to="/cluster" style={linkStyle}>Cluster</NavLink>
+          <NavLink to="/achievements" style={linkStyle}>Achievements</NavLink>
           
           {/* Authentication Section */}
           <div style={{ marginLeft: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', lineHeight: 1 }}>
@@ -246,12 +252,16 @@ const AppContent = () => {
           <Route path="/manifesto" element={<Manifesto />} />
           <Route path="/rewards" element={<Rewards />} />
           <Route path="/morphic-ide" element={<MorphicIDE />} />
+          <Route path="/morphic-ide/launch" element={<MorphicLaunch />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
           <Route path="/phase-one" element={<PhaseOne />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/cluster" element={<Cluster />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/learning-path" element={<LearningPath />} />
+          <Route path="/ide" element={<IDEStandalone />} />
           <Route path="/join" element={<Join />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
