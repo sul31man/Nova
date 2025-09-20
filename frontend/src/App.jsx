@@ -20,6 +20,7 @@ import Achievements from './pages/Achievements.jsx'
 import LearningPath from './pages/LearningPath.jsx'
 import IDEStandalone from './pages/IDEStandalone.jsx'
 import MorphicLaunch from './pages/MorphicLaunch.jsx'
+import Missions from './pages/Missions.jsx'
 import AuthModal from './components/AuthModal.jsx'
 import UserProfile from './components/UserProfile.jsx'
 import logo from './my_images/logo.png'
@@ -177,6 +178,15 @@ const AppContent = () => {
               >
                 Phase 1
               </NavLink>
+              <NavLink 
+                to="/missions" 
+                style={dropdownLinkStyle}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                onClick={() => setHomeDropdownOpen(false)}
+              >
+                Missions
+              </NavLink>
             </div>
           </div>
           <NavLink to="/my-tasks" style={linkStyle}>Execute</NavLink>
@@ -257,6 +267,7 @@ const AppContent = () => {
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/education" element={<Education />} />
           <Route path="/phase-one" element={<PhaseOne />} />
+          <Route path="/missions" element={<Missions />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
           <Route path="/cluster" element={<Cluster />} />
           <Route path="/achievements" element={<Achievements />} />

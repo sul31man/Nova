@@ -44,7 +44,7 @@ export default function MorphicLaunch() {
         }}
       />
       <div className="morphic-center">
-        <div key={idx} className="morphic-phrase fade-cycle">{phrases[idx]}</div>
+        <div key={idx} className="morphic-phrase fade-cycle" style={{ marginLeft: '-4.5rem' }}>{phrases[idx]}</div>
         <NavLink to="/ide" className="morphic-cta" style={{ marginTop: '1.5rem', marginLeft: '-4.3rem' }}>Launch Workbench</NavLink>
       </div>
       <NavLink to="/morphic-ide" style={{ position:'absolute', left:16, top:16, background:'#fff', color:'#0b0e14', padding:'6px 10px', borderRadius:6, textDecoration:'none', fontWeight:700 }}>Back</NavLink>
